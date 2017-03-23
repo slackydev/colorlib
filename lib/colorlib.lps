@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectSession>
+    <PathDelim Value="\"/>
+    <Version Value="10"/>
+    <BuildModes Count="2" Active="Release32">
+      <Item1 Name="Release32">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <PathDelim Value="\"/>
+          <Target>
+            <Filename Value="colorlib32"/>
+          </Target>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir);simba"/>
+            <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+          </SearchPaths>
+          <CodeGeneration>
+            <SmartLinkUnit Value="True"/>
+            <RelocatableUnit Value="True"/>
+            <TargetCPU Value="i386"/>
+            <TargetOS Value="win32"/>
+            <Optimizations>
+              <OptimizationLevel Value="3"/>
+              <VariablesInRegisters Value="True"/>
+            </Optimizations>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <GenerateDebugInfo Value="False"/>
+            </Debugging>
+            <LinkSmart Value="True"/>
+            <Options>
+              <ExecutableType Value="Library"/>
+            </Options>
+          </Linking>
+        </CompilerOptions>
+      </Item1>
+      <Item2 Name="Release64">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <PathDelim Value="\"/>
+          <Target>
+            <Filename Value="colorlib64"/>
+          </Target>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir);simba"/>
+            <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+          </SearchPaths>
+          <CodeGeneration>
+            <SmartLinkUnit Value="True"/>
+            <RelocatableUnit Value="True"/>
+            <TargetCPU Value="x86_64"/>
+            <TargetOS Value="win64"/>
+            <Optimizations>
+              <OptimizationLevel Value="3"/>
+              <VariablesInRegisters Value="True"/>
+            </Optimizations>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <GenerateDebugInfo Value="False"/>
+            </Debugging>
+            <LinkSmart Value="True"/>
+            <Options>
+              <ExecutableType Value="Library"/>
+            </Options>
+          </Linking>
+        </CompilerOptions>
+      </Item2>
+    </BuildModes>
+    <Units Count="33">
+      <Unit0>
+        <Filename Value="colorlib.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <TopLine Value="118"/>
+        <CursorPos X="60" Y="135"/>
+        <UsageCount Value="91"/>
+        <Loaded Value="True"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="FastShareMem.pas"/>
+        <CursorPos X="12" Y="10"/>
+        <UsageCount Value="4"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="C:\lazarus32\fpc\2.6.2\source\rtl\win\wininc\func.inc"/>
+        <TopLine Value="696"/>
+        <CursorPos X="10" Y="714"/>
+        <UsageCount Value="5"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="C:\lazarus32\fpc\2.6.2\source\rtl\win\wininc\struct.inc"/>
+        <TopLine Value="468"/>
+        <CursorPos X="19" Y="478"/>
+        <UsageCount Value="4"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="C:\lazarus32\fpc\2.6.2\source\rtl\win\wininc\ascdef.inc"/>
+        <TopLine Value="310"/>
+        <CursorPos X="10" Y="329"/>
+        <UsageCount Value="4"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="C:\lazarus32\fpc\2.6.2\source\packages\winunits-base\src\shellapi.pp"/>
+        <UnitName Value="ShellApi"/>
+        <TopLine Value="1401"/>
+        <CursorPos X="36" Y="1413"/>
+        <UsageCount Value="4"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="xbitmap.pas"/>
+        <CursorPos X="26" Y="15"/>
+        <UsageCount Value="5"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="C:\lazarus32\fpc\2.6.2\source\rtl\win\wininc\base.inc"/>
+        <TopLine Value="184"/>
+        <CursorPos X="6" Y="203"/>
+        <UsageCount Value="4"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="C:\lazarus32\fpc\2.6.2\source\rtl\inc\systemh.inc"/>
+        <TopLine Value="309"/>
+        <CursorPos X="3" Y="328"/>
+        <UsageCount Value="4"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="C:\lazarus32\fpc\2.6.2\source\rtl\inc\variants.pp"/>
+        <TopLine Value="3647"/>
+        <CursorPos X="14" Y="3666"/>
+        <UsageCount Value="4"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="C:\lazarus32\lcl\lazcanvas.pas"/>
+        <TopLine Value="671"/>
+        <CursorPos X="8" Y="690"/>
+        <UsageCount Value="4"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="C:\lazarus\fpc\2.6.2\source\rtl\objpas\math.pp"/>
+        <TopLine Value="16"/>
+        <CursorPos X="12" Y="32"/>
+        <UsageCount Value="5"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="C:\lazarus\fpc\2.6.2\source\rtl\inc\mathh.inc"/>
+        <TopLine Value="51"/>
+        <CursorPos X="30" Y="72"/>
+        <UsageCount Value="5"/>
+      </Unit12>
+      <Unit13>
+        <Filename Value="lptypes.pas"/>
+        <TopLine Value="640"/>
+        <CursorPos X="7" Y="665"/>
+        <UsageCount Value="5"/>
+      </Unit13>
+      <Unit14>
+        <Filename Value="HashMap.pas"/>
+        <TopLine Value="367"/>
+        <CursorPos X="57" Y="397"/>
+        <UsageCount Value="5"/>
+      </Unit14>
+      <Unit15>
+        <Filename Value="CoreTypes.pas"/>
+        <CursorPos X="26" Y="46"/>
+        <UsageCount Value="5"/>
+      </Unit15>
+      <Unit16>
+        <Filename Value="C:\lazarus\fpc\2.6.2\source\rtl\win\wininc\func.inc"/>
+        <TopLine Value="72"/>
+        <CursorPos X="24" Y="95"/>
+        <UsageCount Value="4"/>
+      </Unit16>
+      <Unit17>
+        <Filename Value="C:\lazarus\fpc\2.6.2\source\rtl\win\wininc\base.inc"/>
+        <TopLine Value="83"/>
+        <CursorPos X="6" Y="99"/>
+        <UsageCount Value="5"/>
+      </Unit17>
+      <Unit18>
+        <Filename Value="C:\lazarus\fpc\2.6.2\source\rtl\inc\systemh.inc"/>
+        <TopLine Value="243"/>
+        <CursorPos X="12" Y="268"/>
+        <UsageCount Value="9"/>
+      </Unit18>
+      <Unit19>
+        <Filename Value="C:\lazarus\fpc\2.6.2\source\rtl\win\wininc\redef.inc"/>
+        <TopLine Value="891"/>
+        <CursorPos X="94" Y="912"/>
+        <UsageCount Value="4"/>
+      </Unit19>
+      <Unit20>
+        <Filename Value="C:\lazarus\fpc\2.6.2\source\rtl\win\wininc\struct.inc"/>
+        <TopLine Value="6313"/>
+        <CursorPos X="24" Y="6330"/>
+        <UsageCount Value="4"/>
+      </Unit20>
+      <Unit21>
+        <Filename Value="C:\lazarus\fpc\2.6.2\source\rtl\win\sysosh.inc"/>
+        <TopLine Value="5"/>
+        <CursorPos X="3" Y="22"/>
+        <UsageCount Value="5"/>
+      </Unit21>
+      <Unit22>
+        <Filename Value="simba\SimbaPlugin.inc"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="56" Y="23"/>
+        <UsageCount Value="26"/>
+      </Unit22>
+      <Unit23>
+        <Filename Value="finder.pas"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="158"/>
+        <CursorPos X="46" Y="165"/>
+        <UsageCount Value="28"/>
+        <Loaded Value="True"/>
+      </Unit23>
+      <Unit24>
+        <Filename Value="header.pas"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="53"/>
+        <CursorPos X="14" Y="68"/>
+        <UsageCount Value="26"/>
+        <Loaded Value="True"/>
+      </Unit24>
+      <Unit25>
+        <Filename Value="colormath.pas"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="11"/>
+        <UsageCount Value="26"/>
+      </Unit25>
+      <Unit26>
+        <Filename Value="colordist.pas"/>
+        <EditorIndex Value="5"/>
+        <TopLine Value="16"/>
+        <CursorPos X="13" Y="32"/>
+        <UsageCount Value="28"/>
+        <Loaded Value="True"/>
+      </Unit26>
+      <Unit27>
+        <Filename Value="threadpool.pas"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="26"/>
+        <CursorPos X="11" Y="155"/>
+        <UsageCount Value="26"/>
+      </Unit27>
+      <Unit28>
+        <Filename Value="utils.pas"/>
+        <EditorIndex Value="4"/>
+        <TopLine Value="39"/>
+        <CursorPos X="31" Y="38"/>
+        <UsageCount Value="18"/>
+        <Loaded Value="True"/>
+      </Unit28>
+      <Unit29>
+        <Filename Value="threading.pas"/>
+        <EditorIndex Value="3"/>
+        <TopLine Value="179"/>
+        <CursorPos X="23" Y="168"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+      </Unit29>
+      <Unit30>
+        <Filename Value="C:\lazarus\fpc\2.6.4\source\rtl\objpas\classes\classesh.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="1583"/>
+        <CursorPos X="15" Y="1600"/>
+        <UsageCount Value="10"/>
+      </Unit30>
+      <Unit31>
+        <Filename Value="C:\lazarus\fpc\2.6.4\source\rtl\win\tthread.inc"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="3" Y="100"/>
+        <UsageCount Value="10"/>
+      </Unit31>
+      <Unit32>
+        <Filename Value="colorconversion.pas"/>
+        <EditorIndex Value="6"/>
+        <TopLine Value="238"/>
+        <CursorPos X="40" Y="138"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit32>
+    </Units>
+    <JumpHistory Count="30" HistoryIndex="29">
+      <Position1>
+        <Filename Value="threading.pas"/>
+        <Caret Line="49" Column="38" TopLine="23"/>
+      </Position1>
+      <Position2>
+        <Filename Value="threading.pas"/>
+        <Caret Line="119" Column="26" TopLine="101"/>
+      </Position2>
+      <Position3>
+        <Filename Value="threading.pas"/>
+        <Caret Line="178" Column="51" TopLine="159"/>
+      </Position3>
+      <Position4>
+        <Filename Value="threading.pas"/>
+        <Caret Line="164" Column="44" TopLine="147"/>
+      </Position4>
+      <Position5>
+        <Filename Value="threading.pas"/>
+        <Caret Line="51" Column="18" TopLine="22"/>
+      </Position5>
+      <Position6>
+        <Filename Value="finder.pas"/>
+        <Caret Line="34" Column="16" TopLine="16"/>
+      </Position6>
+      <Position7>
+        <Filename Value="threading.pas"/>
+        <Caret Line="39" Column="16" TopLine="25"/>
+      </Position7>
+      <Position8>
+        <Filename Value="threading.pas"/>
+        <Caret Line="42" Column="30" TopLine="25"/>
+      </Position8>
+      <Position9>
+        <Filename Value="threading.pas"/>
+        <Caret Line="100" Column="40" TopLine="87"/>
+      </Position9>
+      <Position10>
+        <Filename Value="threading.pas"/>
+        <Caret Line="40" Column="13" TopLine="21"/>
+      </Position10>
+      <Position11>
+        <Filename Value="threading.pas"/>
+        <Caret Line="42" Column="35" TopLine="21"/>
+      </Position11>
+      <Position12>
+        <Filename Value="threading.pas"/>
+        <Caret Line="53" Column="91" TopLine="24"/>
+      </Position12>
+      <Position13>
+        <Filename Value="threading.pas"/>
+        <Caret Line="97" Column="41" TopLine="78"/>
+      </Position13>
+      <Position14>
+        <Filename Value="threading.pas"/>
+        <Caret Line="98" Column="17" TopLine="78"/>
+      </Position14>
+      <Position15>
+        <Filename Value="threading.pas"/>
+        <Caret Line="204" Column="31" TopLine="178"/>
+      </Position15>
+      <Position16>
+        <Filename Value="threading.pas"/>
+        <Caret Line="43" Column="35" TopLine="24"/>
+      </Position16>
+      <Position17>
+        <Filename Value="finder.pas"/>
+        <Caret Line="265" Column="66" TopLine="244"/>
+      </Position17>
+      <Position18>
+        <Filename Value="finder.pas"/>
+        <Caret Line="267" Column="26" TopLine="247"/>
+      </Position18>
+      <Position19>
+        <Filename Value="threading.pas"/>
+        <Caret Line="61" TopLine="50"/>
+      </Position19>
+      <Position20>
+        <Filename Value="colordist.pas"/>
+        <Caret Line="32" Column="13" TopLine="16"/>
+      </Position20>
+      <Position21>
+        <Filename Value="colorconversion.pas"/>
+        <Caret Line="124" Column="15" TopLine="106"/>
+      </Position21>
+      <Position22>
+        <Filename Value="colorconversion.pas"/>
+        <Caret Line="127" Column="5" TopLine="111"/>
+      </Position22>
+      <Position23>
+        <Filename Value="colorconversion.pas"/>
+        <Caret Line="137" Column="37" TopLine="117"/>
+      </Position23>
+      <Position24>
+        <Filename Value="colorconversion.pas"/>
+        <Caret Line="133" Column="21" TopLine="117"/>
+      </Position24>
+      <Position25>
+        <Filename Value="finder.pas"/>
+        <Caret Line="305" Column="18" TopLine="280"/>
+      </Position25>
+      <Position26>
+        <Filename Value="finder.pas"/>
+        <Caret Line="50" Column="5" TopLine="26"/>
+      </Position26>
+      <Position27>
+        <Filename Value="finder.pas"/>
+        <Caret Line="335" Column="16" TopLine="305"/>
+      </Position27>
+      <Position28>
+        <Filename Value="colorlib.lpr"/>
+        <Caret Line="114" Column="50" TopLine="93"/>
+      </Position28>
+      <Position29>
+        <Filename Value="colorlib.lpr"/>
+        <Caret Line="113" Column="19" TopLine="95"/>
+      </Position29>
+      <Position30>
+        <Filename Value="colorlib.lpr"/>
+        <Caret Line="112"/>
+      </Position30>
+    </JumpHistory>
+  </ProjectSession>
+</CONFIG>

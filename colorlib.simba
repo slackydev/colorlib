@@ -1,0 +1,84 @@
+{$loadlib ../Includes/colorlib/lib/colorlib}
+var
+  colorlib: TColorlib;
+  {$ifndef longnames}
+  cl: TColorlib;
+  {$endif}
+
+{$IfNDef CodeInSight}
+operator <  (Left:TFloatMatrix; Right:Double): TBoolMatrix; begin Result := colorlib.LessThan(Left, Right);    end;
+operator <  (Left:Double; Right:TFloatMatrix): TBoolMatrix; begin Result := colorlib.LessThan(Left, Right);    end;
+operator >  (Left:TFloatMatrix; Right:Double): TBoolMatrix; begin Result := colorlib.GreaterThan(Left, Right); end;
+operator >  (Left:Double; Right:TFloatMatrix): TBoolMatrix; begin Result := colorlib.GreaterThan(Left, Right); end;
+operator =  (Left:TFloatMatrix; Right:Double): TBoolMatrix; begin Result := colorlib.EqualTo(Left, Right);     end;
+operator =  (Left:Double; Right:TFloatMatrix): TBoolMatrix; begin Result := colorlib.EqualTo(Left, Right);     end;
+operator <> (Left:TFloatMatrix; Right:Double): TBoolMatrix; begin Result := colorlib.NotEqualTo(Left, Right);  end;
+operator <> (Left:Double; Right:TFloatMatrix): TBoolMatrix; begin Result := colorlib.NotEqualTo(Left, Right);  end;
+{$EndIf}
+
+function TColorlib.MatrixFromClient(x1,y1,x2,y2:Int32): TIntMatrix; constref;
+type
+  PInt32 = ^Int32;
+var
+  W,H:Int32;
+  bmp:TMufasaBitmap;
+begin
+  GetClientDimensions(W,H);
+  if x2 < 0 then x2 := W+x2;
+  if y2 < 0 then y2 := H+y2;
+
+  bmp := GetMufasaBitmap(BitmapFromClient(x1,y1, x2,y2));
+  GetBitmapSize(bmp.GetIndex(), W,H);
+
+  Result := self.GetRawMatrix(bmp.GetData, 0,0,-1,-1, W,H);
+  FreeBitmap(bmp.GetIndex());
+end;
+
+function TColorlib.MatrixFromClient_Benchmark(mulW,mulH:Double): TIntMatrix; constref;
+var
+  w,h:Int32;
+  bmp:TMufasaBitmap;
+type PInt32 = ^Int32;
+begin
+  GetClientDimensions(w,h);
+  bmp := GetMufasaBitmap(BitmapFromClient(0,0,w-1,h-1));
+  w := Round(W*mulW);
+  h := Round(H*mulH);
+  bmp.ResizeEx(RM_Nearest, w, h);
+  for 0 to 1 do bmp.Blur(1);
+
+  Result := Self.GetRawMatrix(bmp.GetData, 0,0,w-1,h-1, w,h);
+  FreeBitmap(bmp.GetIndex());
+end;
+
+
+function TColorlib.BuildDebugImage(mat:TFloatMatrix; lo,hi:Double): Integer; constref;
+var
+  x,y,w,h,c:Int32;
+begin
+  W := High(mat[0]);
+  H := High(mat);
+  Result := CreateBitmap(W+1,H+1);
+  for y:=0 to H do
+    for x:=0 to W do
+    begin
+      c := Max(0, Min(255, Round(mat[y,x] * 255)));
+      FastSetPixel(Result, x,y, RGBToColor(c div 4, c div 2, c));
+    end;
+end;
+
+procedure TColorlib.DebugMatrix(mat:TFloatMatrix; lo,hi:Double; scale:Int32=4); constref;
+var
+  bmp,w,h:Int32;
+begin
+  bmp := self.BuildDebugImage(mat, lo, hi);
+  GetBitmapSize(bmp, w,h);
+  ResizeBitmapEx(bmp, RM_Bilinear, w div scale, h div scale);
+
+  GetBitmapSize(bmp, w,h);
+  DisplayDebugImgWindow(w,h);
+  DrawBitmapDebugImg(bmp);
+
+  FreeBitmap(bmp);
+end;
+
