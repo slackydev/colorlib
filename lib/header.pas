@@ -1,4 +1,4 @@
-unit header;
+unit Header;
 {=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=]
  Copyright (c) 2014, Jarl K. <Slacky> Holta || http://github.com/WarPie
  All rights reserved.
@@ -7,17 +7,15 @@ unit header;
 {$mode objfpc}{$H+}
 {$macro on}
 {$inline on}
-
 interface
 
 type
-  Float = Single;
-  PFloat = Float;
+  PSingle = ^Single;
 
-  PFloatArray = ^TFloatArray;
-  TFloatArray = array of Float;
-  PFloatMatrix = ^TFloatMatrix;
-  TFloatMatrix = array of TFloatArray;
+  PSingleArray = ^TSingleArray;
+  TSingleArray = array of Single;
+  PSingleMatrix = ^TSingleMatrix;
+  TSingleMatrix = array of TSingleArray;
   
   PIntArray = ^TIntArray;
   TIntArray  = array of Int32;
@@ -43,33 +41,30 @@ type
   end;
   TPointArray = array of TPoint;
 
-  PChannelMultiplier = ^TChannelMultiplier;
-  TChannelMultiplier = array [0..2] of Float;
+  PMultiplier = ^TMultiplier;
+  TMultiplier = array [0..2] of Single;
 
   PColor = ^TColor;
   TColor = Int32;
   
-  ColorXYZ = record X,Y,Z: Float; end;
-  ColorLAB = record L,A,B: Float; end;
-  ColorLCH = record L,C,H: Float; end;
-  ColorHSV = record H,S,V: Float; end;
-  ColorHSL = record H,S,L: Float; end;
-  ColorRGB = record R,G,B: Byte; end;
+  ColorRGB = record R,G,B: Byte;  end;
+  ColorXYZ = record X,Y,Z: Single; end;
+  ColorLAB = record L,A,B: Single; end;
+  ColorLCH = record L,C,H: Single; end;
+  ColorHSV = record H,S,V: Single; end;
+  ColorHSL = record H,S,L: Single; end;
 
+  PColorRGB = ^ColorRGB;
   PColorXYZ = ^ColorXYZ;
   PColorLAB = ^ColorLAB;
   PColorLCH = ^ColorLCH;
   PColorHSV = ^ColorHSV;
   PColorHSL = ^ColorHSL;
-  PColorRGB = ^ColorRGB;
   
-  EDistanceFormula = (dfRGB, dfHSV, dfXYZ, dfLAB, dfLCH, dfDeltaE);
+  EDistanceFormula = (dfRGB, dfHSV, dfHSL, dfXYZ, dfLAB, dfLCH, dfDeltaE);
 
-const
-  FLOATSTR = {$If SizeOf(Float) = SizeOf(Single)}'Single'{$ElseIf SizeOf(Float) = SizeOf(Double)}'Double'{$ENDIF};
 
-  
-function Modulo(X,Y: Float): Float; inline;
+function Modulo(X,Y: Single): Single; inline;
 function Modulo(X,Y: Int32): Int32; inline;
 function Modulo(X,Y: Int64): Int64; inline;
 function Box(X1,Y1,X2,Y2: Int32): TBox; inline;
@@ -79,9 +74,9 @@ implementation
 
 uses math;
 
-function Modulo(X,Y: Float): Float; begin Result := X - Floor(X / Y) * Y; end;
-function Modulo(X,Y: Int32): Int32; begin Result := X - Floor(X / Y) * Y; end;
-function Modulo(X,Y: Int64): Int64; begin Result := X - Floor(X / Y) * Y; end;
+function Modulo(X,Y: Single): Single; begin Result := X - Floor(X / Y) * Y; end;
+function Modulo(X,Y: Int32): Int32;   begin Result := X - Floor(X / Y) * Y; end;
+function Modulo(X,Y: Int64): Int64;   begin Result := X - Floor(X / Y) * Y; end;
 
 function Box(X1,Y1,X2,Y2: Int32): TBox;
 begin

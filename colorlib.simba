@@ -6,14 +6,14 @@ var
   {$endif}
 
 {$IfNDef CodeInSight}
-operator <  (Left:TFloatMatrix; Right:Double): TBoolMatrix; begin Result := colorlib.LessThan(Left, Right);    end;
-operator <  (Left:Double; Right:TFloatMatrix): TBoolMatrix; begin Result := colorlib.LessThan(Left, Right);    end;
-operator >  (Left:TFloatMatrix; Right:Double): TBoolMatrix; begin Result := colorlib.GreaterThan(Left, Right); end;
-operator >  (Left:Double; Right:TFloatMatrix): TBoolMatrix; begin Result := colorlib.GreaterThan(Left, Right); end;
-operator =  (Left:TFloatMatrix; Right:Double): TBoolMatrix; begin Result := colorlib.EqualTo(Left, Right);     end;
-operator =  (Left:Double; Right:TFloatMatrix): TBoolMatrix; begin Result := colorlib.EqualTo(Left, Right);     end;
-operator <> (Left:TFloatMatrix; Right:Double): TBoolMatrix; begin Result := colorlib.NotEqualTo(Left, Right);  end;
-operator <> (Left:Double; Right:TFloatMatrix): TBoolMatrix; begin Result := colorlib.NotEqualTo(Left, Right);  end;
+operator <  (Left:TSingleMatrix; Right:Double): TBoolMatrix; begin Result := colorlib.LessThan(Left, Right);    end;
+operator <  (Left:Double; Right:TSingleMatrix): TBoolMatrix; begin Result := colorlib.LessThan(Left, Right);    end;
+operator >  (Left:TSingleMatrix; Right:Double): TBoolMatrix; begin Result := colorlib.GreaterThan(Left, Right); end;
+operator >  (Left:Double; Right:TSingleMatrix): TBoolMatrix; begin Result := colorlib.GreaterThan(Left, Right); end;
+operator =  (Left:TSingleMatrix; Right:Double): TBoolMatrix; begin Result := colorlib.EqualTo(Left, Right);     end;
+operator =  (Left:Double; Right:TSingleMatrix): TBoolMatrix; begin Result := colorlib.EqualTo(Left, Right);     end;
+operator <> (Left:TSingleMatrix; Right:Double): TBoolMatrix; begin Result := colorlib.NotEqualTo(Left, Right);  end;
+operator <> (Left:Double; Right:TSingleMatrix): TBoolMatrix; begin Result := colorlib.NotEqualTo(Left, Right);  end;
 {$EndIf}
 
 function TColorlib.MatrixFromClient(x1,y1,x2,y2:Int32): TIntMatrix; constref;
@@ -52,7 +52,7 @@ begin
 end;
 
 
-function TColorlib.BuildDebugImage(mat:TFloatMatrix; lo,hi:Double): Integer; constref;
+function TColorlib.BuildDebugImage(mat:TSingleMatrix; lo,hi:Double): Integer; constref;
 var
   x,y,w,h,c:Int32;
 begin
@@ -67,7 +67,7 @@ begin
     end;
 end;
 
-procedure TColorlib.DebugMatrix(mat:TFloatMatrix; lo,hi:Double; scale:Int32=4); constref;
+procedure TColorlib.DebugMatrix(mat:TSingleMatrix; lo,hi:Double; scale:Int32=4); constref;
 var
   bmp,w,h:Int32;
 begin

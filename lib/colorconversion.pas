@@ -1,4 +1,4 @@
-unit colorconversion;
+unit ColorConversion;
 {=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=]
  Copyright (c) 2013, Jarl K. <Slacky> Holta || http://github.com/WarPie
  All rights reserved.
@@ -7,10 +7,9 @@ unit colorconversion;
 {$mode objfpc}{$H+}
 {$macro on}
 {$inline on}
-
 interface
 uses
-  Math, SysUtils, header;
+  Math, SysUtils, Header;
 
 //currently set for BGR
 {$DEFINE B_BIT := 0}
@@ -19,7 +18,7 @@ uses
 
 
 const
-  XYZ_POW_2_4: array[0..255] of Float = (
+  XYZ_POW_2_4: array[0..255] of Single = (
     0.000834,  0.000984,  0.001148,  0.001328,  0.001523,  0.001733,  0.001960,  0.002203,  0.002463,  0.002740,  0.003035,  0.003347,  0.003677,  0.004025,  0.004391,  0.004777,  0.005182,  0.005605,  0.006049,  0.006512,  0.006995,  0.007499,  0.008023,  0.008568,  0.009134,  0.009721,  0.010330,  0.010960,  0.011612,  0.012286,  0.012983,  0.013702,  0.014444,  0.015209,  0.015996,  0.016807,  0.017642,  0.018500,  0.019382,  0.020289,  0.021219,  0.022174,  0.023153,  0.024158,  0.025187,  0.026241,  0.027321,  0.028426,  0.029557,  0.030713,  0.031896,  0.033105,
     0.034340,  0.035601,  0.036889,  0.038204,  0.039546,  0.040915,  0.042311,  0.043735,  0.045186,  0.046665,  0.048172,  0.049707,  0.051269,  0.052861,  0.054480,  0.056128,  0.057805,  0.059511,  0.061246,  0.063010,  0.064803,  0.066626,  0.068478,  0.070360,  0.072272,  0.074214,  0.076185,  0.078187,  0.080220,  0.082283,  0.084376,  0.086500,  0.088656,  0.090842,  0.093059,  0.095307,  0.097587,  0.099899,  0.102242,  0.104616,  0.107023,  0.109462,  0.111932,  0.114435,  0.116971,  0.119538,  0.122139,  0.124772,  0.127438,  0.130136,  0.132868,  0.135633,
     0.138432,  0.141263,  0.144128,  0.147027,  0.149960,  0.152926,  0.155926,  0.158961,  0.162029,  0.165132,  0.168269,  0.171441,  0.174647,  0.177888,  0.181164,  0.184475,  0.187821,  0.191202,  0.194618,  0.198069,  0.201556,  0.205079,  0.208637,  0.212231,  0.215861,  0.219526,  0.223228,  0.226966,  0.230740,  0.234551,  0.238398,  0.242281,  0.246201,  0.250158,  0.254152,  0.258183,  0.262251,  0.266356,  0.270498,  0.274677,  0.278894,  0.283149,  0.287441,  0.291771,  0.296138,  0.300544,  0.304987,  0.309469,  0.313989,  0.318547,  0.323143,  0.327778,
@@ -27,8 +26,9 @@ const
     0.630757,  0.637597,  0.644480,  0.651406,  0.658375,  0.665387,  0.672443,  0.679542,  0.686685,  0.693872,  0.701102,  0.708376,  0.715694,  0.723055,  0.730461,  0.737910,  0.745404,  0.752942,  0.760525,  0.768151,  0.775822,  0.783538,  0.791298,  0.799103,  0.806952,  0.814847,  0.822786,  0.830770,  0.838799,  0.846873,  0.854993,  0.863157,  0.871367,  0.879622,  0.887923,  0.896269,  0.904661,  0.913099,  0.921582,  0.930111,  0.938686,  0.947307,  0.955973,  0.964686,  0.973445,  0.982251,  0.991102,  1.000000
   );
   
-  ONE_DIV_THREE:     Float =  1.0 / 3.0;
-  NEG_ONE_DIV_THREE: Float = -1.0 / 3.0;
+  ONE_DIV_THREE:     Single =  1.0 / 3.0;
+  TWO_DIV_THREE:     Single =  2.0 / 3.0;
+  NEG_ONE_DIV_THREE: Single = -1.0 / 3.0;
 
 
 function ColorToRGB(Color: TColor): ColorRGB; inline;
@@ -36,15 +36,20 @@ function SwapRGBChannels(RGB:TColor): Integer; inline;
 function RGBToColor(RGB: ColorRGB): TColor; inline;
 function ColorIntensity(Color: TColor): Byte; inline;
 function ColorToGray(Color: TColor): Byte; inline;
+
 function ColorToXYZ(Color: TColor): ColorXYZ; inline;
 function XYZToLAB(XYZ: ColorXYZ): ColorLAB; inline;
 function ColorToLAB(Color: TColor): ColorLAB; inline;
 function LABToLCH(LAB: ColorLAB): ColorLCH; inline;
 function ColorToLCH(Color: TColor): ColorLCH; inline;
-function ColorToHSV(Color: TColor): ColorHSV; Inline;
+
+function ColorToHSV(Color: TColor): ColorHSV; inline;
 function HSVToRGB(HSV: ColorHSV): ColorRGB; inline;
 function HSVToColor(HSV: ColorHSV): TColor; inline;
 
+function ColorToHSL(Color: TColor): ColorHSL; inline;
+function HSLToRGB(HSL: ColorHSL): ColorRGB; inline;
+function HSLToColor(HSL: ColorHSL): TColor; inline;
 
 //--------------------------------------------------
 implementation
@@ -54,9 +59,9 @@ implementation
  Fast approximation of cuberoot (accuracy ±0.001%) using SSE2 (any x86-64 CPU will do)
  Falls back to using `Power` if not x86 CPU
 *}
-function fCbrt(x:Single): Single;
+function fCbrt(x: Single): Single;
 const
-  THREE:Single = 3.0;
+  THREE: Single = 3.0;
 begin
   {$IFDEF CPU386}
   {$ASMMODE intel}
@@ -118,7 +123,7 @@ end;
 (*
   Converts R,G,B values to an integer representation of the color
 *)
-function RGBToColor(RGB:ColorRGB): TColor;
+function RGBToColor(RGB: ColorRGB): TColor;
 begin
   {$If R_BIT = 16}
   Result := RGB.B or RGB.G shl 8 or RGB.R shl 16;
@@ -130,7 +135,7 @@ end;
 (*
   Converts R,G,B values to an integer representation of the color
 *)
-function SwapRGBChannels(RGB:TColor): Integer;
+function SwapRGBChannels(RGB: TColor): Integer;
 var tmp:ColorRGB;
 begin
   tmp.B := RGB shr B_BIT and $FF;
@@ -169,7 +174,7 @@ end;
 function ColorToXYZ(Color: TColor): ColorXYZ;
 var
   R,G,B:Byte;
-  vR,vG,vB: Float;
+  vR,vG,vB: Single;
 begin
   R := color shr R_BIT and $FF;
   G := color shr G_BIT and $FF;
@@ -206,7 +211,7 @@ end;
     B range [-100..100]
 *)
 function XYZToLAB(XYZ: ColorXYZ): ColorLAB;
-var X,Y,Z: Float;
+var X,Y,Z: Single;
 begin
   X := XYZ.X / 255;
   Y := XYZ.Y / 255;
@@ -238,7 +243,7 @@ end;
 function ColorToLAB(Color: TColor): ColorLAB;
 var
   iR,iG,iB:Byte;
-  vR,vG,vB,X,Y,Z: Float;
+  vR,vG,vB,X,Y,Z: Single;
 begin
   iR := color shr R_BIT and $FF;
   iG := color shr G_BIT and $FF;
@@ -286,7 +291,7 @@ end;
 function LABToLCH(LAB: ColorLAB): ColorLCH;
 begin
   Result.L := LAB.L;
-  Result.C := Sqrt(Sqr(LAB.A) + Sqr(LAB.B)) * 0.70710678118;
+  Result.C := Sqrt(Sqr(LAB.A) + Sqr(LAB.B)) * 0.707106781186548;
   Result.H := ArcTan2(LAB.B, LAB.A);
   
   if (Result.H > 0) then
@@ -329,7 +334,7 @@ end;
 *)
 function ColorToHSV(Color: TColor): ColorHSV;
 var
-  chroma,t,R,G,B,K: Float;
+  chroma,t,R,G,B,K: Single;
 begin
   R := (color shr R_BIT and $FF) / 255;
   G := (color shr G_BIT and $FF) / 255;
@@ -349,8 +354,8 @@ begin
   end;
 
   chroma := r - Min(g, b);
-  Result.s := chroma / (r + 1.0e-20)  * 100;
-  if Result.s < 1.0e-20 then
+  Result.s := chroma / (r + 1.0e-10)  * 100;
+  if Result.s < 1.0e-10 then
     Result.h := 0
   else
     Result.h := Abs(K + (g - b) / (6.0 * chroma + 1.0e-20)) * 360;
@@ -370,7 +375,7 @@ end;
 *)
 function HSVToRGB(HSV: ColorHSV): ColorRGB;
 var
-  h,s,v,i,f,p,q,t,R,G,B:Float;
+  h,s,v,i,f,p,q,t,R,G,B: Single;
 begin
   H := HSV.H / 360;
   S := HSV.S / 100;
@@ -439,14 +444,111 @@ end;
   Output:
     Integer rep of the RGB values
 *)
-function HSVToColor(HSV: ColorHSV): Integer;
+function HSVToColor(HSV: ColorHSV): TColor;
 var
-  RGB:ColorRGB;
+  RGB: ColorRGB;
 begin
-  RGB:=HSVToRGB(HSV);
-  Result := RGB.R or RGB.G shl 8 or RGB.B shl 16;
+  RGB := HSVToRGB(HSV);
+  Result := RGB.R shl B_BIT or RGB.G shl G_BIT or RGB.B shl R_BIT;
 end;
 
+
+(*
+  Converts Color (RGB) to HSL
+  
+  Output:
+    H value is in degrees [0..360]
+    S and L values are percentages [0..100]
+*)
+function ColorToHSL(Color: TColor): ColorHSL;
+var
+  R,G,B, deltaC,cMax,cMin: Single;
+begin
+  R := (color shr R_BIT and $FF) / 255;
+  G := (color shr G_BIT and $FF) / 255;
+  B := (color shr B_BIT and $FF) / 255;
+  cMin := Min(R,Min(G,B));
+  cMax := Max(R,Max(G,B));
+  deltaC := cMax - cMin;
+
+  Result.L := (cMax + cMin) * 0.5;
+  if deltaC = 0 then begin
+    Result.H := 0;
+    Result.S := 0;
+  end else
+  begin
+    if Result.L < 0.5 then Result.S := deltaC / (cMax + cMin)
+    else                   Result.S := deltaC / (2 - cMax - cMin);
+
+    if     (R = cMax) then Result.H := (    (G - B) / deltaC) * 60
+    else if(G = cMax) then Result.H := (2 + (B - R) / deltaC) * 60
+    else{if(B = cMax) then}Result.H := (4 + (R - G) / deltaC) * 60;
+
+    if(Result.H < 0) then Result.H += 360;
+  end;
+  Result.S *= 100;
+  Result.L *= 100;
+end;
+
+(*
+  Converts HSL to RGB
+
+  Input:
+    H values is in degrees [0..360]
+    S and L values are percentages [0..100]
+  
+  Output: 
+    R,G,B is in range of [0..255]
+*)
+function HSLToRGB(HSL: ColorHSL): ColorRGB;
+  function Hue2RGB(v1, v2, vH: Single): Byte; inline;
+  begin
+    if(vH < 0) then vH += 1;
+    if(vH > 1) then vH -= 1;
+    if(6 * vH < 1) then Exit(Round(255 * (v1 + (v2 - v1) * 6 * vH)));
+    if(2 * vH < 1) then Exit(Round(255 * v2));
+    if(3 * vH < 2) then Exit(Round(255 * (v1 + (v2 - v1) * (TWO_DIV_THREE - vH) * 6)));
+    Result := Round(255 * v1);
+  end;
+var
+  tmp,tmp2: Single;
+begin
+  if (HSL.S = 0) then begin
+    Result.R := Round(HSL.L * 2.55);
+    Result.G := Round(HSL.L * 2.55);
+    Result.B := Round(HSL.L * 2.55);
+  end else
+  begin
+    HSL.H /= 360;
+    HSL.S /= 100;
+    HSL.L /= 100;
+    if (HSL.L < 0.5) then tmp2 := (HSL.L) * (1 + HSL.S)
+    else                  tmp2 := (HSL.L + HSL.S) - (HSL.S * HSL.L);
+
+    tmp := 2 * HSL.L - tmp2;
+    Result.R := Hue2RGB(tmp, tmp2, HSL.H + ONE_DIV_THREE);
+    Result.G := Hue2RGB(tmp, tmp2, HSL.H);
+    Result.B := Hue2RGB(tmp, tmp2, HSL.H - ONE_DIV_THREE);
+  end;
+end;
+
+(*
+  Converts HSL to Color(RGB)
+
+  Input:
+    H values is in degrees [0..360]
+    S and L values are percentages [0..100]
+
+  Output:
+    Integer rep of the RGB values
+*)
+function HSLToColor(HSL: ColorHSL): TColor;
+var
+  RGB: ColorRGB;
+begin
+  RGB := HSLToRGB(HSL);
+  Result := RGB.R shl B_BIT or RGB.G shl G_BIT or RGB.B shl R_BIT;
+end;
 
 
 end.

@@ -9,10 +9,10 @@ library colorlib;
 uses
   SysUtils,
   Classes,
-  math,
-  header,
-  finder,
-  utils;
+  Math,
+  Header,
+  Finder,
+  Utils;
 
 {$I SimbaPlugin.inc}
 
@@ -48,22 +48,22 @@ begin
   Result := Finder.GetNumThreads();
 end;
 
-procedure TFinder_SetMultipliers(var Finder:TFinder; Mul:TChannelMultiplier); cdecl;
+procedure TFinder_SetMultipliers(var Finder:TFinder; Mul:TMultiplier); cdecl;
 begin
   Finder.SetMultipliers(Mul);
 end;
 
-function TFinder_GetMultipliers(var Finder:TFinder): TChannelMultiplier; cdecl;
+function TFinder_GetMultipliers(var Finder:TFinder): TMultiplier; cdecl;
 begin
   Result := Finder.GetMultipliers();
 end;
 
-procedure TFinder_MatchColor(var Finder:TFinder; src:TIntMatrix; var dest:TFloatMatrix; color:Int32); cdecl;
+procedure TFinder_MatchColor(var Finder:TFinder; src:TIntMatrix; var dest:TSingleMatrix; color:Int32); cdecl;
 begin
   Finder.MatchColor(src, dest, color);
 end;
 
-function TFinder_FindColor(var Finder:TFinder; src:TIntMatrix; out dest:TPointArray; color:TColor; tolerance:header.Float): Boolean; cdecl;
+function TFinder_FindColor(var Finder:TFinder; src:TIntMatrix; out dest:TPointArray; color:TColor; tolerance:Single): Boolean; cdecl;
 begin
   Result := Finder.FindColor(src, dest, color, Tolerance);
 end;
@@ -72,38 +72,34 @@ end;
 
 
 function _GetRawMatrix(constref _:Pointer; data:PInt32; x1,y1,x2,y2:Int32; W,H:Int32): TIntMatrix; cdecl;
-begin
-  Result := GetRawMatrix(data,x1,y1,x2,y2,W,H);
-end;
+begin Result := GetRawMatrix(data,x1,y1,x2,y2,W,H); end;
 
 function _Where(constref _:Pointer; Matrix:TBoolMatrix): TPointArray; cdecl;
-begin
-  Result := Where(Matrix);
-end;
+begin Result := Where(Matrix); end;
 
-function _MatrixLT(constref _:Pointer; Left:TFloatMatrix; Right:Double): TBoolMatrix; cdecl;
+function _MatrixLT(constref _:Pointer; Left:TSingleMatrix; Right:Single): TBoolMatrix; cdecl;
 begin Result := MatrixLT(Left, Right); end;
 
-function _MatrixLT(constref _:Pointer; Left:Double; Right:TFloatMatrix): TBoolMatrix; cdecl;
+function _MatrixLT(constref _:Pointer; Left:Single; Right:TSingleMatrix): TBoolMatrix; cdecl;
 begin Result := MatrixLT(Left, Right); end;
 
-function _MatrixGT(constref _:Pointer; Left:TFloatMatrix; Right:Double): TBoolMatrix; cdecl;
+function _MatrixGT(constref _:Pointer; Left:TSingleMatrix; Right:Single): TBoolMatrix; cdecl;
 begin Result := MatrixGT(Left, Right); end;
 
-function _MatrixGT(constref _:Pointer; Left:Double; Right:TFloatMatrix): TBoolMatrix; cdecl;
+function _MatrixGT(constref _:Pointer; Left:Single; Right:TSingleMatrix): TBoolMatrix; cdecl;
 begin Result := MatrixGT(Left, Right); end;
 
-function _MatrixEQ(constref _:Pointer; Left:TFloatMatrix; Right:Double): TBoolMatrix; cdecl;
+function _MatrixEQ(constref _:Pointer; Left:TSingleMatrix; Right:Single): TBoolMatrix; cdecl;
 begin Result := MatrixEQ(Left, Right); end;
 
-function _MatrixEQ(constref _:Pointer; Left:Double; Right:TFloatMatrix): TBoolMatrix; cdecl;
+function _MatrixEQ(constref _:Pointer; Left:Single; Right:TSingleMatrix): TBoolMatrix; cdecl;
 begin Result := MatrixEQ(Left, Right); end;
 
-function _MatrixNE(constref _:Pointer; Left:TFloatMatrix; Right:Double): TBoolMatrix; cdecl;
-begin Result := MatrixNEQ(Left, Right); end;
+function _MatrixNE(constref _:Pointer; Left:TSingleMatrix; Right:Single): TBoolMatrix; cdecl;
+begin Result := MatrixNE(Left, Right); end;
 
-function _MatrixNE(constref _:Pointer; Left:Double; Right:TFloatMatrix): TBoolMatrix; cdecl;
-begin Result := MatrixNEQ(Left, Right); end;
+function _MatrixNE(constref _:Pointer; Left:Single; Right:TSingleMatrix): TBoolMatrix; cdecl;
+begin Result := MatrixNE(Left, Right); end;
 
 
 //----------------------------------------------------------------------------\\
@@ -112,9 +108,9 @@ begin Result := MatrixNEQ(Left, Right); end;
 initialization
   ExportType('TBoolMatrix',        'array of array of LongBool;');
   ExportType('TIntMatrix',         'array of array of Int32;');
-  ExportType('TFloatMatrix',       'array of array of '+FLOATSTR+';');
-  ExportType('EDistanceFormula',   '(dfRGB, dfHSV, dfXYZ, dfLAB, dfLCH, dfDeltaE);');
-  ExportType('TChannelMultiplier', 'array [0..2] of '+FLOATSTR+';');
+  ExportType('TSingleMatrix',      'array of array of Single;');
+  ExportType('EDistanceFormula',   '(dfRGB, dfHSV, dfHSL, dfXYZ, dfLAB, dfLCH, dfDeltaE);');
+  ExportType('TChMultiplier',      'array [0..2] of Single;');
   ExportType('TColorlib',          'type Pointer');
 
   ExportType('TFinder',  'packed record                ' + #13#10 +
@@ -123,7 +119,7 @@ initialization
                          '  FCacheSize: UInt8;         ' + #13#10 +
                          '  FColorInfo : Pointer;      ' + #13#10 +
                          '  FFormula: EDistanceFormula;' + #13#10 +
-                         '  FChMul: TChannelMultiplier;' + #13#10 +
+                         '  FChMul: TChMultiplier;     ' + #13#10 +
                          '  FThreadPool: TObject;      ' + #13#10 +
                          'end;');
 
@@ -134,20 +130,20 @@ initialization
   ExportMethod(@TFinder_GetFormula,     'function  TFinder.GetGormula(): EDistanceFormula;');
   ExportMethod(@TFinder_SetNumThreads,  'procedure TFinder.SetNumThreads(N: UInt8);');
   ExportMethod(@TFinder_GetNumThreads,  'function  TFinder.GetNumThreads(): UInt8;');
-  ExportMethod(@TFinder_SetMultipliers, 'procedure TFinder.SetMultiplier(Mul: TChannelMultiplier);');
-  ExportMethod(@TFinder_GetMultipliers, 'function  TFinder.GetMultiplier(): TChannelMultiplier;');
-  ExportMethod(@TFinder_MatchColor,     'procedure TFinder.MatchColor(Src:TIntMatrix; var Dest:TFloatMatrix; Color:TColor);');
-  ExportMethod(@TFinder_FindColor,      'function TFinder.FindColor(src:TIntMatrix; out dest:TPointArray; color:TColor; tolerance:'+FLOATSTR+'): Boolean;');
+  ExportMethod(@TFinder_SetMultipliers, 'procedure TFinder.SetMultiplier(Mul: TChMultiplier);');
+  ExportMethod(@TFinder_GetMultipliers, 'function  TFinder.GetMultiplier(): TChMultiplier;');
+  ExportMethod(@TFinder_MatchColor,     'procedure TFinder.MatchColor(Src: TIntMatrix; var Dest: TSingleMatrix; Color: TColor);');
+  ExportMethod(@TFinder_FindColor,      'function  TFinder.FindColor(Src: TIntMatrix; out Dest: TPointArray; color: TColor; Tolerance: Single): Boolean;');
 
   ExportMethod(@_GetRawMatrix, 'function TColorlib.GetRawMatrix(data:Pointer; x1,y1,x2,y2:Int32; W,H:Int32): TIntMatrix; constref;');
   ExportMethod(@_Where,        'function TColorlib.Where(Matrix:TBoolMatrix): TPointArray; constref;');
 
-  ExportMethod(@_MatrixLT,  'function TColorlib.LessThan(Left:TFloatMatrix; Right:Double): TBoolMatrix; constref; overload;');
-  ExportMethod(@_MatrixLT,  'function TColorlib.LessThan(Left:Double; Right:TFloatMatrix): TBoolMatrix; constref; overload;');
-  ExportMethod(@_MatrixGT,  'function TColorlib.GreaterThan(Left:TFloatMatrix; Right:Double): TBoolMatrix; constref; overload;');
-  ExportMethod(@_MatrixGT,  'function TColorlib.GreaterThan(Left:Double; Right:TFloatMatrix): TBoolMatrix; constref; overload;');
-  ExportMethod(@_MatrixEQ,  'function TColorlib.EqualTo(Left:TFloatMatrix; Right:Double): TBoolMatrix; constref; overload;');
-  ExportMethod(@_MatrixEQ,  'function TColorlib.EqualTo(Left:Double; Right:TFloatMatrix): TBoolMatrix; constref; overload;');
-  ExportMethod(@_MatrixNE,  'function TColorlib.NotEqualTo(Left:TFloatMatrix; Right:Double): TBoolMatrix; constref; overload;');
-  ExportMethod(@_MatrixNE,  'function TColorlib.NotEqualTo(Left:Double; Right:TFloatMatrix): TBoolMatrix; constref; overload;');
+  ExportMethod(@_MatrixLT,  'function TColorlib.LessThan(Left:TSingleMatrix; Right:Single): TBoolMatrix; constref; overload;');
+  ExportMethod(@_MatrixLT,  'function TColorlib.LessThan(Left:Single; Right:TSingleMatrix): TBoolMatrix; constref; overload;');
+  ExportMethod(@_MatrixGT,  'function TColorlib.GreaterThan(Left:TSingleMatrix; Right:Single): TBoolMatrix; constref; overload;');
+  ExportMethod(@_MatrixGT,  'function TColorlib.GreaterThan(Left:Single; Right:TSingleMatrix): TBoolMatrix; constref; overload;');
+  ExportMethod(@_MatrixEQ,  'function TColorlib.EqualTo(Left:TSingleMatrix; Right:Single): TBoolMatrix; constref; overload;');
+  ExportMethod(@_MatrixEQ,  'function TColorlib.EqualTo(Left:Single; Right:TSingleMatrix): TBoolMatrix; constref; overload;');
+  ExportMethod(@_MatrixNE,  'function TColorlib.NotEqualTo(Left:TSingleMatrix; Right:Single): TBoolMatrix; constref; overload;');
+  ExportMethod(@_MatrixNE,  'function TColorlib.NotEqualTo(Left:Single; Right:TSingleMatrix): TBoolMatrix; constref; overload;');
 end.

@@ -3,7 +3,7 @@
   <ProjectSession>
     <PathDelim Value="\"/>
     <Version Value="10"/>
-    <BuildModes Count="2" Active="Release32">
+    <BuildModes Count="2" Active="Release64">
       <Item1 Name="Release32">
         <CompilerOptions>
           <Version Value="11"/>
@@ -73,8 +73,9 @@
       <Unit0>
         <Filename Value="colorlib.lpr"/>
         <IsPartOfProject Value="True"/>
-        <TopLine Value="118"/>
-        <CursorPos X="60" Y="135"/>
+        <IsVisibleTab Value="True"/>
+        <TopLine Value="73"/>
+        <CursorPos X="23" Y="103"/>
         <UsageCount Value="91"/>
         <Loaded Value="True"/>
       </Unit0>
@@ -210,18 +211,18 @@
       </Unit22>
       <Unit23>
         <Filename Value="finder.pas"/>
-        <IsVisibleTab Value="True"/>
+        <UnitName Value="Finder"/>
         <EditorIndex Value="2"/>
-        <TopLine Value="158"/>
-        <CursorPos X="46" Y="165"/>
+        <TopLine Value="193"/>
+        <CursorPos X="30" Y="211"/>
         <UsageCount Value="28"/>
         <Loaded Value="True"/>
       </Unit23>
       <Unit24>
         <Filename Value="header.pas"/>
+        <UnitName Value="Header"/>
         <EditorIndex Value="1"/>
-        <TopLine Value="53"/>
-        <CursorPos X="14" Y="68"/>
+        <CursorPos X="92" Y="8"/>
         <UsageCount Value="26"/>
         <Loaded Value="True"/>
       </Unit24>
@@ -233,9 +234,9 @@
       </Unit25>
       <Unit26>
         <Filename Value="colordist.pas"/>
+        <UnitName Value="ColorDist"/>
         <EditorIndex Value="5"/>
-        <TopLine Value="16"/>
-        <CursorPos X="13" Y="32"/>
+        <CursorPos X="21" Y="24"/>
         <UsageCount Value="28"/>
         <Loaded Value="True"/>
       </Unit26>
@@ -248,6 +249,7 @@
       </Unit27>
       <Unit28>
         <Filename Value="utils.pas"/>
+        <UnitName Value="Utils"/>
         <EditorIndex Value="4"/>
         <TopLine Value="39"/>
         <CursorPos X="31" Y="38"/>
@@ -256,6 +258,7 @@
       </Unit28>
       <Unit29>
         <Filename Value="threading.pas"/>
+        <UnitName Value="Threading"/>
         <EditorIndex Value="3"/>
         <TopLine Value="179"/>
         <CursorPos X="23" Y="168"/>
@@ -277,9 +280,10 @@
       </Unit31>
       <Unit32>
         <Filename Value="colorconversion.pas"/>
+        <UnitName Value="ColorConversion"/>
         <EditorIndex Value="6"/>
-        <TopLine Value="238"/>
-        <CursorPos X="40" Y="138"/>
+        <TopLine Value="516"/>
+        <CursorPos X="34" Y="545"/>
         <UsageCount Value="10"/>
         <Loaded Value="True"/>
       </Unit32>
@@ -287,123 +291,123 @@
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="threading.pas"/>
-        <Caret Line="49" Column="38" TopLine="23"/>
+        <Caret Line="40" Column="13" TopLine="21"/>
       </Position1>
       <Position2>
         <Filename Value="threading.pas"/>
-        <Caret Line="119" Column="26" TopLine="101"/>
+        <Caret Line="42" Column="35" TopLine="21"/>
       </Position2>
       <Position3>
         <Filename Value="threading.pas"/>
-        <Caret Line="178" Column="51" TopLine="159"/>
+        <Caret Line="53" Column="91" TopLine="24"/>
       </Position3>
       <Position4>
         <Filename Value="threading.pas"/>
-        <Caret Line="164" Column="44" TopLine="147"/>
+        <Caret Line="97" Column="41" TopLine="78"/>
       </Position4>
       <Position5>
         <Filename Value="threading.pas"/>
-        <Caret Line="51" Column="18" TopLine="22"/>
+        <Caret Line="98" Column="17" TopLine="78"/>
       </Position5>
       <Position6>
-        <Filename Value="finder.pas"/>
-        <Caret Line="34" Column="16" TopLine="16"/>
+        <Filename Value="threading.pas"/>
+        <Caret Line="204" Column="31" TopLine="178"/>
       </Position6>
       <Position7>
         <Filename Value="threading.pas"/>
-        <Caret Line="39" Column="16" TopLine="25"/>
+        <Caret Line="43" Column="35" TopLine="24"/>
       </Position7>
       <Position8>
-        <Filename Value="threading.pas"/>
-        <Caret Line="42" Column="30" TopLine="25"/>
+        <Filename Value="finder.pas"/>
+        <Caret Line="265" Column="66" TopLine="244"/>
       </Position8>
       <Position9>
-        <Filename Value="threading.pas"/>
-        <Caret Line="100" Column="40" TopLine="87"/>
+        <Filename Value="finder.pas"/>
+        <Caret Line="267" Column="26" TopLine="247"/>
       </Position9>
       <Position10>
         <Filename Value="threading.pas"/>
-        <Caret Line="40" Column="13" TopLine="21"/>
+        <Caret Line="61" TopLine="50"/>
       </Position10>
       <Position11>
-        <Filename Value="threading.pas"/>
-        <Caret Line="42" Column="35" TopLine="21"/>
+        <Filename Value="colordist.pas"/>
+        <Caret Line="32" Column="13" TopLine="16"/>
       </Position11>
       <Position12>
-        <Filename Value="threading.pas"/>
-        <Caret Line="53" Column="91" TopLine="24"/>
+        <Filename Value="colorconversion.pas"/>
+        <Caret Line="124" Column="15" TopLine="106"/>
       </Position12>
       <Position13>
-        <Filename Value="threading.pas"/>
-        <Caret Line="97" Column="41" TopLine="78"/>
+        <Filename Value="colorconversion.pas"/>
+        <Caret Line="127" Column="5" TopLine="111"/>
       </Position13>
       <Position14>
-        <Filename Value="threading.pas"/>
-        <Caret Line="98" Column="17" TopLine="78"/>
+        <Filename Value="colorconversion.pas"/>
+        <Caret Line="137" Column="37" TopLine="117"/>
       </Position14>
       <Position15>
-        <Filename Value="threading.pas"/>
-        <Caret Line="204" Column="31" TopLine="178"/>
+        <Filename Value="colorconversion.pas"/>
+        <Caret Line="133" Column="21" TopLine="117"/>
       </Position15>
       <Position16>
-        <Filename Value="threading.pas"/>
-        <Caret Line="43" Column="35" TopLine="24"/>
+        <Filename Value="finder.pas"/>
+        <Caret Line="305" Column="18" TopLine="280"/>
       </Position16>
       <Position17>
         <Filename Value="finder.pas"/>
-        <Caret Line="265" Column="66" TopLine="244"/>
+        <Caret Line="50" Column="5" TopLine="26"/>
       </Position17>
       <Position18>
         <Filename Value="finder.pas"/>
-        <Caret Line="267" Column="26" TopLine="247"/>
+        <Caret Line="335" Column="16" TopLine="305"/>
       </Position18>
       <Position19>
-        <Filename Value="threading.pas"/>
-        <Caret Line="61" TopLine="50"/>
+        <Filename Value="colorlib.lpr"/>
+        <Caret Line="114" Column="50" TopLine="93"/>
       </Position19>
       <Position20>
-        <Filename Value="colordist.pas"/>
-        <Caret Line="32" Column="13" TopLine="16"/>
+        <Filename Value="colorlib.lpr"/>
+        <Caret Line="113" Column="19" TopLine="95"/>
       </Position20>
       <Position21>
-        <Filename Value="colorconversion.pas"/>
-        <Caret Line="124" Column="15" TopLine="106"/>
+        <Filename Value="colorlib.lpr"/>
+        <Caret Line="112"/>
       </Position21>
       <Position22>
         <Filename Value="colorconversion.pas"/>
-        <Caret Line="127" Column="5" TopLine="111"/>
+        <Caret Line="138" Column="40" TopLine="238"/>
       </Position22>
       <Position23>
         <Filename Value="colorconversion.pas"/>
-        <Caret Line="137" Column="37" TopLine="117"/>
+        <Caret Line="52" Column="24" TopLine="28"/>
       </Position23>
       <Position24>
-        <Filename Value="colorconversion.pas"/>
-        <Caret Line="133" Column="21" TopLine="117"/>
+        <Filename Value="colordist.pas"/>
+        <Caret Line="32" Column="13" TopLine="16"/>
       </Position24>
       <Position25>
-        <Filename Value="finder.pas"/>
-        <Caret Line="305" Column="18" TopLine="280"/>
+        <Filename Value="colordist.pas"/>
+        <Caret Line="35" Column="12" TopLine="16"/>
       </Position25>
       <Position26>
         <Filename Value="finder.pas"/>
-        <Caret Line="50" Column="5" TopLine="26"/>
+        <Caret Line="180" Column="53" TopLine="158"/>
       </Position26>
       <Position27>
         <Filename Value="finder.pas"/>
-        <Caret Line="335" Column="16" TopLine="305"/>
+        <Caret Line="144" Column="38" TopLine="126"/>
       </Position27>
       <Position28>
-        <Filename Value="colorlib.lpr"/>
-        <Caret Line="114" Column="50" TopLine="93"/>
+        <Filename Value="finder.pas"/>
+        <Caret Line="211" Column="30" TopLine="193"/>
       </Position28>
       <Position29>
         <Filename Value="colorlib.lpr"/>
-        <Caret Line="113" Column="19" TopLine="95"/>
+        <Caret Line="121" Column="28" TopLine="111"/>
       </Position29>
       <Position30>
         <Filename Value="colorlib.lpr"/>
-        <Caret Line="112"/>
+        <Caret Line="58" Column="41" TopLine="32"/>
       </Position30>
     </JumpHistory>
   </ProjectSession>

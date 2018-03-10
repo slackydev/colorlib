@@ -1,4 +1,4 @@
-unit utils;
+unit Utils;
 {=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=]
  Copyright (c) 2014, Jarl K. <Slacky> Holta || http://github.com/WarPie
  All rights reserved.
@@ -7,23 +7,22 @@ unit utils;
 {$mode objfpc}{$H+}
 {$macro on}
 {$inline on}
-
 interface
-
-uses
-  header;
+uses 
+  Header;
 
 function GetRawMatrix(src:PInt32; x1,y1,x2,y2:Int32; W,H:Int32): TIntMatrix;
 function Where(Matrix:TBoolMatrix): TPointArray;
 
-function MatrixLT(Matrix:TFloatMatrix; value:Double): TBoolMatrix;
-function MatrixLT(value:Double; Matrix:TFloatMatrix): TBoolMatrix;
-function MatrixGT(Matrix:TFloatMatrix; value:Double): TBoolMatrix;
-function MatrixGT(value:Double; Matrix:TFloatMatrix): TBoolMatrix;
-function MatrixEQ(Matrix:TFloatMatrix; value:Double): TBoolMatrix;
-function MatrixEQ(value:Double; Matrix:TFloatMatrix): TBoolMatrix;
-function MatrixNEQ(Matrix:TFloatMatrix; value:Double): TBoolMatrix;
-function MatrixNEQ(value:Double; Matrix:TFloatMatrix): TBoolMatrix;
+function MatrixLT(Matrix: TSingleMatrix; value: Single): TBoolMatrix;
+function MatrixGT(Matrix: TSingleMatrix; value: Single): TBoolMatrix;
+function MatrixEQ(Matrix: TSingleMatrix; value: Single): TBoolMatrix;
+function MatrixNE(Matrix: TSingleMatrix; value: Single): TBoolMatrix;
+
+function MatrixLT(value: Single; Matrix: TSingleMatrix): TBoolMatrix;
+function MatrixGT(value: Single; Matrix: TSingleMatrix): TBoolMatrix;
+function MatrixEQ(value: Single; Matrix: TSingleMatrix): TBoolMatrix;
+function MatrixNE(value: Single; Matrix: TSingleMatrix): TBoolMatrix;
 
 implementation
 
@@ -48,7 +47,7 @@ begin
 end;
 
 
-function Where(Matrix:TBoolMatrix): TPointArray;
+function Where(Matrix: TBoolMatrix): TPointArray;
 var 
   W,H,c,x,y:Int32;
 begin
@@ -88,29 +87,16 @@ end;
 }
 
 
-{$DEFINE LEFT_VAR := Matrix[y,x]} {$DEFINE RIGHT_VAR := value} {$DEFINE CMPOP := <}
-function MatrixLT(Matrix:TFloatMatrix; value:Double): TBoolMatrix; MATRIX_COMPARE;
-
-{$DEFINE LEFT_VAR := value} {$DEFINE RIGHT_VAR := Matrix[y,x]} {$DEFINE CMPOP := <}
-function MatrixLT(value:Double; Matrix:TFloatMatrix): TBoolMatrix; MATRIX_COMPARE;
-
-{$DEFINE LEFT_VAR := Matrix[y,x]} {$DEFINE RIGHT_VAR := value} {$DEFINE CMPOP := >}
-function MatrixGT(Matrix:TFloatMatrix; value:Double): TBoolMatrix; MATRIX_COMPARE;
-
-{$DEFINE LEFT_VAR := value} {$DEFINE RIGHT_VAR := Matrix[y,x]} {$DEFINE CMPOP := >}
-function MatrixGT(value:Double; Matrix:TFloatMatrix): TBoolMatrix; MATRIX_COMPARE;
-
-{$DEFINE LEFT_VAR := Matrix[y,x]} {$DEFINE RIGHT_VAR := value} {$DEFINE CMPOP := =}
-function MatrixEQ(Matrix:TFloatMatrix; value:Double): TBoolMatrix; MATRIX_COMPARE;
-
-{$DEFINE LEFT_VAR := value} {$DEFINE RIGHT_VAR := Matrix[y,x]} {$DEFINE CMPOP := =}
-function MatrixEQ(value:Double; Matrix:TFloatMatrix): TBoolMatrix; MATRIX_COMPARE;
-
-{$DEFINE LEFT_VAR := Matrix[y,x]} {$DEFINE RIGHT_VAR := value} {$DEFINE CMPOP := <>}
-function MatrixNEQ(Matrix:TFloatMatrix; value:Double): TBoolMatrix; MATRIX_COMPARE;
-
-{$DEFINE LEFT_VAR := value} {$DEFINE RIGHT_VAR := Matrix[y,x]} {$DEFINE CMPOP := <>}
-function MatrixNEQ(value:Double; Matrix:TFloatMatrix): TBoolMatrix; MATRIX_COMPARE;
+{$DEFINE LEFT_VAR  := Matrix[y,x]} {$DEFINE RIGHT_VAR := value} 
+{$DEFINE CMPOP := <}  function MatrixLT(Matrix: TSingleMatrix; value: Single): TBoolMatrix; MATRIX_COMPARE;
+{$DEFINE CMPOP := >}  function MatrixGT(Matrix: TSingleMatrix; value: Single): TBoolMatrix; MATRIX_COMPARE;
+{$DEFINE CMPOP := =}  function MatrixEQ(Matrix: TSingleMatrix; value: Single): TBoolMatrix; MATRIX_COMPARE;
+{$DEFINE CMPOP := <>} function MatrixNE(Matrix: TSingleMatrix; value: Single): TBoolMatrix; MATRIX_COMPARE;
 
 
+{$DEFINE LEFT_VAR  := value} {$DEFINE RIGHT_VAR := Matrix[y,x]} 
+{$DEFINE CMPOP := <}  function MatrixLT(value: Single; Matrix: TSingleMatrix): TBoolMatrix; MATRIX_COMPARE;
+{$DEFINE CMPOP := >}  function MatrixGT(value: Single; Matrix: TSingleMatrix): TBoolMatrix; MATRIX_COMPARE;
+{$DEFINE CMPOP := =}  function MatrixEQ(value: Single; Matrix: TSingleMatrix): TBoolMatrix; MATRIX_COMPARE;
+{$DEFINE CMPOP := <>} function MatrixNE(value: Single; Matrix: TSingleMatrix): TBoolMatrix; MATRIX_COMPARE;
 end.

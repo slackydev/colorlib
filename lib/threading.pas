@@ -1,4 +1,4 @@
-unit threading;
+unit Threading;
 {=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=]
  Copyright (c) 2014, Jarl K. <Slacky> Holta || http://github.com/WarPie
  All rights reserved.
@@ -7,10 +7,9 @@ unit threading;
 {$mode objfpc}{$H+}
 {$modeswitch advancedrecords}
 {$inline on}
-     
 interface
 uses
-  SysUtils, Classes, header;
+  SysUtils, Classes, Header;
 
 type
   TThreadMethod = procedure(params:PParamArray); 
@@ -58,7 +57,6 @@ type
   
 //--------------------------------------------------
 implementation
-
 uses
   Math;
 

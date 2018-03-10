@@ -1,4 +1,4 @@
-unit finder;
+unit Finder;
 {=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=]
  Copyright (c) 2014, Jarl K. <Slacky> Holta || http://github.com/WarPie
  All rights reserved.
@@ -7,18 +7,15 @@ unit finder;
 {$mode objfpc}{$H+}
 {$modeswitch advancedrecords}
 {$inline on}
-     
 interface
 uses
-  SysUtils, Classes, threading, header;
+  SysUtils, Classes, Threading, Header;
 
 type
-  TChMul = TChannelMultiplier;
-
   TColorInfo = Pointer;
   PColorInfo = ^TColorInfo;
 
-  TColorDistFunc = function(Color1:TColorInfo; Color2:TColor; mul: TChMul): Float;
+  TColorDistFunc = function(Color1:TColorInfo; Color2:TColor; mul: TMultiplier): Single;
   PColorDistFunc = ^TColorDistFunc;
 
 
@@ -28,41 +25,41 @@ type
     FCompareFunc: TColorDistFunc;
     FNumThreads: UInt8;
     FCacheSize: UInt8;
-    FColorInfo : TColorInfo;
+    FColorInfo: TColorInfo;
     FFormula: EDistanceFormula;
-    FChMul: TChMul;
+    FChMul: TMultiplier;
     FThreadPool: TThreadPool;
 
-    function SetupColorInfo(Color:Int32): Float;
+    function  SetupColorInfo(Color:Int32): Single;
     procedure FreeColorInfo();   
   public
     procedure Init(Formula:EDistanceFormula; NumThreads:UInt8; CacheSize:UInt8);
     procedure Free;
 
     procedure SetFormula(Formula: EDistanceFormula);
-    function GetFormula(): EDistanceFormula;
+    function  GetFormula(): EDistanceFormula;
     procedure SetNumThreads(NumThreads: UInt8);
-    function GetNumThreads(): Int32;
-    procedure SetMultipliers(Multiplier: TChMul);
-    function GetMultipliers(): TChMul;
+    function  GetNumThreads(): Int32;
+    procedure SetMultipliers(Mul: TMultiplier);
+    function  GetMultipliers(): TMultiplier;
 
-    procedure MatchColor(src:TIntMatrix; var dest:TFloatMatrix; color:TColor);
-    function FindColor(src:TIntMatrix; out dest:TPointArray; color:TColor; Tolerance:header.Float): Boolean;
+    procedure MatchColor(src:TIntMatrix; var dest:TSingleMatrix; color:TColor);
+    function FindColor(src:TIntMatrix; out dest:TPointArray; color:TColor; Tolerance:Single): Boolean;
   end;
 
 
-  TMicroCacheItem = record Color:TColor; Diff:Float; end;
+  TMicroCacheItem = record Color:TColor; Diff:Single; end;
   TMicroCache = record
     High: SizeInt;
     Color: TColorInfo;
-    MaxDiff: Float;
-    Mods: TChMul;
+    MaxDiff: Single;
+    Mods: TMultiplier;
     Diff: TColorDistFunc;
     Cache: array of TMicroCacheItem;
 
-    procedure Init(ASize:UInt8; AColor:TColorInfo; AMaxDiff:Float; AMods:TChMul; ADiff: TColorDistFunc);
+    procedure Init(ASize:UInt8; AColor:TColorInfo; AMaxDiff:Single; AMods:TMultiplier; ADiff: TColorDistFunc);
     function Compare(TestColor: TColor): TMicroCacheItem; inline;
-    function DirectCompare(TestColor: TColor): Float; inline;
+    function DirectCompare(TestColor: TColor): Single; inline;
   end;
 
 
@@ -74,7 +71,7 @@ uses
   colordist,
   colorconversion;
 
-procedure TMicroCache.Init(ASize:UInt8; AColor:TColorInfo; AMaxDiff:header.Float; AMods:TChMul; ADiff: TColorDistFunc);
+procedure TMicroCache.Init(ASize:UInt8; AColor:TColorInfo; AMaxDiff:Single; AMods:TMultiplier; ADiff: TColorDistFunc);
 var i:Int32;
 begin
   self.Color := AColor;
@@ -125,7 +122,7 @@ begin
   Result := self.cache[0];
 end;
 
-function TMicroCache.DirectCompare(TestColor: TColor): header.Float;
+function TMicroCache.DirectCompare(TestColor: TColor): Single;
 begin
   Result  := 1 - Diff(self.Color, TestColor, self.Mods) / self.MaxDiff;
 end;
@@ -134,7 +131,7 @@ procedure ColorCorrelation(params:PParamArray);
 var
   x,y: Int32;
   src: PIntMatrix;
-  dest:PFloatMatrix;
+  dest:PSingleMatrix;
   box: TBox;
   uCache: TMicroCache;
 begin
@@ -144,8 +141,8 @@ begin
   uCache.Init(
     PUInt8(Params^[6])^,             //cache size
     PColorInfo(Params^[4])^,         //input color
-    PFloat(Params^[3])^,             //maximum diff using this colorspace and current mult
-    PChannelMultiplier(Params^[2])^, //channelwise multipliers
+    PSingle(Params^[3])^,            //maximum diff using this colorspace and current mult
+    PMultiplier(Params^[2])^,        //channelwise multipliers
     PColorDistFunc(Params^[5])^      //the function needed to compute diff between colors
   );
 
@@ -189,7 +186,7 @@ end;
 
 (*----| Setup/Unsetup |-------------------------------------------------------*)
 
-function TFinder.SetupColorInfo(Color:Int32): header.Float;
+function TFinder.SetupColorInfo(Color:Int32): Single;
 begin
   case FFormula of
     dfRGB:
@@ -201,10 +198,17 @@ begin
       end;
     dfHSV:
       begin
-        FCompareFunc := @DistanceHSV;;
+        FCompareFunc := @DistanceHSV;
         FColorInfo := AllocMem(SizeOf(ColorHSV));
         PColorHSV(FColorInfo)^ := ColorToHSV(Color);
         Result := DistanceHSV_Max(FChMul);
+      end;
+    dfHSL:
+      begin
+        FCompareFunc := @DistanceHSL;
+        FColorInfo := AllocMem(SizeOf(ColorHSL));
+        PColorHSL(FColorInfo)^ := ColorToHSL(Color);
+        Result := DistanceHSL_Max(FChMul);
       end;
     dfXYZ:
       begin
@@ -277,16 +281,16 @@ end;
 (*
   Get & Set the multipliers
 *)
-procedure TFinder.SetMultipliers(multiplier: TChMul);
-var x:Float;
+procedure TFinder.SetMultipliers(Mul: TMultiplier);
+var x:Single;
 begin
-  x := (multiplier[0] + multiplier[1] + multiplier[2]) / 3;
-  FChMul[0] := multiplier[0]/x;
-  FChMul[1] := multiplier[1]/x;
-  FChMul[2] := multiplier[2]/x;
+  x := (Mul[0] + Mul[1] + Mul[2]) / 3;
+  FChMul[0] := Mul[0] / x;
+  FChMul[1] := Mul[1] / x;
+  FChMul[2] := Mul[2] / x;
 end;
 
-function TFinder.GetMultipliers(): TChMul;
+function TFinder.GetMultipliers(): TMultiplier;
 begin
   Result := FChMul;
 end;
@@ -297,10 +301,10 @@ end;
 (*
   Threaded cross-correlate a color with an image
 *)
-procedure TFinder.MatchColor(src:TIntMatrix; var dest:TFloatMatrix; color:TColor);
+procedure TFinder.MatchColor(src:TIntMatrix; var dest:TSingleMatrix; color:TColor);
 var
   W,H: Int32;
-  maxDist: Float;
+  maxDist: Single;
 begin
   H := Length(src);
   if (H = 0) then Exit;
@@ -309,16 +313,16 @@ begin
   color := SwapRGBChannels(color);
   maxDist := Self.SetupColorInfo(Color);
   SetLength(dest, H,W);
-
+  
   FThreadPool.MatrixFunc(@ColorCorrelation, [@src, @dest, @FChMul, @maxDist, @FColorInfo, @FCompareFunc, @FCacheSize], W,H, FNumThreads);
   Self.FreeColorInfo();
 end;
 
-function TFinder.FindColor(src:TIntMatrix; out dest:TPointArray; color:TColor; Tolerance:header.Float): Boolean;
+function TFinder.FindColor(src:TIntMatrix; out dest:TPointArray; color:TColor; Tolerance:Single): Boolean;
 var
   x,y,c: Int32;
-  xcorr: TFloatMatrix;
-  min: header.Float;
+  xcorr: TSingleMatrix;
+  min: Single;
 begin
   MatchColor(src, xcorr, color);
   min := (100-(Tolerance+0.00001)) / 100;
