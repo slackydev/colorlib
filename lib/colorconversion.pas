@@ -12,9 +12,9 @@ uses
   Math, SysUtils, Header;
 
 //currently set for BGR
-{$DEFINE B_BIT := 0}
+{$DEFINE B_BIT := 16}
 {$DEFINE G_BIT := 8}
-{$DEFINE R_BIT := 16}
+{$DEFINE R_BIT := 0}
 
 
 const
@@ -30,18 +30,39 @@ const
   TWO_DIV_THREE:     Single =  2.0 / 3.0;
   NEG_ONE_DIV_THREE: Single = -1.0 / 3.0;
 
+  XYZ_NORM_X: Single = 1.0520778890;
+  XYZ_NORM_Z: Single = 0.9182736278;
+  XYZ_INV_X:  Single = 1.0 / 1.0520778890;
+  XYZ_INV_Z:  Single = 1.0 / 0.9182736278;
+  
+  SQRT2:      Single = 1.414213562373095;
+  HALF_SQRT2: Single = 0.5 * 1.414213562373095;
+
+  
 
 function ColorToRGB(Color: TColor): ColorRGB; inline;
-function SwapRGBChannels(RGB:TColor): Integer; inline;
 function RGBToColor(RGB: ColorRGB): TColor; inline;
+function SwapRGBChannels(RGB: TColor): TColor; inline;
 function ColorIntensity(Color: TColor): Byte; inline;
 function ColorToGray(Color: TColor): Byte; inline;
 
 function ColorToXYZ(Color: TColor): ColorXYZ; inline;
-function XYZToLAB(XYZ: ColorXYZ): ColorLAB; inline;
+function XYZToRGB(XYZ: ColorXYZ): ColorRGB; inline;
+function XYZToColor(HSL: ColorXYZ): TColor; inline;
+
 function ColorToLAB(Color: TColor): ColorLAB; inline;
-function LABToLCH(LAB: ColorLAB): ColorLCH; inline;
+function XYZToLAB(XYZ: ColorXYZ): ColorLAB; inline;
+function LABToXYZ(LAB: ColorLAB): ColorXYZ; inline;
+function LABToRGB(LAB: ColorLAB): ColorRGB; inline;
+function LABToColor(LAB: ColorLAB): TColor; inline;
+
 function ColorToLCH(Color: TColor): ColorLCH; inline;
+function XYZToLCH(XYZ: ColorXYZ): ColorLCH; inline;
+function LABToLCH(LAB: ColorLAB): ColorLCH; inline;
+function LCHToLAB(LCH: ColorLCH): ColorLAB; inline;
+function LCHToXYZ(LCH: ColorLCH): ColorXYZ; inline;
+function LCHToRGB(LCH: ColorLCH): ColorRGB; inline;
+function LCHToColor(LCH: ColorLCH): TColor; inline;
 
 function ColorToHSV(Color: TColor): ColorHSV; inline;
 function HSVToRGB(HSV: ColorHSV): ColorRGB; inline;
@@ -59,15 +80,15 @@ implementation
  Fast approximation of cuberoot (accuracy ±0.001%) using SSE2 (any x86-64 CPU will do)
  Falls back to using `Power` if not x86 CPU
 *}
-function fCbrt(x: Single): Single;
+function fCbrt(X: Single): Single;
 const
   THREE: Single = 3.0;
 begin
   {$IFDEF CPU386}
   {$ASMMODE intel}
   asm
-    mov		eax,	x
-    movss	xmm2,	x
+    mov		eax,	X
+    movss	xmm2,	X
     movss	xmm1,	THREE
     mov		ecx,	eax		//int magic
     and		eax,	$7FFFFFFF
@@ -105,7 +126,7 @@ begin
   end;
   {$ELSE}
     //Fallback for ARM
-    Result := x**1.0/3.0;
+    Result := Power(X, ONE_DIV_THREE);
   {$ENDIF}
 end;
 
@@ -125,7 +146,7 @@ end;
 *)
 function RGBToColor(RGB: ColorRGB): TColor;
 begin
-  {$If R_BIT = 16}
+  {$IF R_BIT = 16}
   Result := RGB.B or RGB.G shl 8 or RGB.R shl 16;
   {$ELSE}
   Result := RGB.R or RGB.G shl 8 or RGB.B shl 16;
@@ -135,8 +156,8 @@ end;
 (*
   Converts R,G,B values to an integer representation of the color
 *)
-function SwapRGBChannels(RGB: TColor): Integer;
-var tmp:ColorRGB;
+function SwapRGBChannels(RGB: TColor): TColor;
+var tmp: ColorRGB;
 begin
   tmp.B := RGB shr B_BIT and $FF;
   tmp.G := RGB shr G_BIT and $FF;
@@ -181,123 +202,169 @@ begin
   B := color shr B_BIT and $FF;
 
   if R > 10 then vR := XYZ_POW_2_4[R]
-  else vR := (R / 255.0) / 12.92;
-  
+  else           vR := (R / 255.0) / 12.92;
   if G > 10 then vG := XYZ_POW_2_4[G]
-  else vG := (G / 255.0) / 12.92;
-  
+  else           vG := (G / 255.0) / 12.92;
   if B > 10 then vB := XYZ_POW_2_4[B]
-  else vB := (B / 255.0) / 12.92;
-  
+  else           vB := (B / 255.0) / 12.92;
+
   vR := vR * 255; //Same range as RGB
   vG := vG * 255;
   vB := vB * 255;
-  
-  //Observer 0 deg, Illuminant = D65
-  Result.X := vR * 0.4124 + vG * 0.3576 + vB * 0.1805;
-  Result.Y := vR * 0.2126 + vG * 0.7152 + vB * 0.0722;
-  Result.Z := vR * 0.0193 + vG * 0.1192 + vB * 0.9505; 
-end;
 
+  // Illuminant = D65
+  Result.X := (vR * 0.4124 + vG * 0.3576 + vB * 0.1805) * XYZ_NORM_X;
+  Result.Y := (vR * 0.2126 + vG * 0.7152 + vB * 0.0722);
+  Result.Z := (vR * 0.0193 + vG * 0.1192 + vB * 0.9505) * XYZ_NORM_Z;
+end; 
 
 (*
-  Converts XYZ to (non standard)LAB
+  Converts XYZ to RGB
+
   Input:
-    X,Y and Z in the range 0..255
-
-  Output:
-    L range [0..100]
-    A range [-100..100]
-    B range [-100..100]
+    X,Y,Z in range [0..255]
+  Output: 
+    R,G,B is in range of [0..255]
 *)
-function XYZToLAB(XYZ: ColorXYZ): ColorLAB;
-var X,Y,Z: Single;
+function XYZToRGB(XYZ: ColorXYZ): ColorRGB;
+var
+  vR,vG,vB,vX,vY,vZ: Single;
 begin
-  X := XYZ.X / 255;
-  Y := XYZ.Y / 255;
-  Z := XYZ.Z / 255;
-  
-  if X > 0.008856 then X := fcbrt(X)
-  else X := (7.787 * X) + 0.137931;
-  
-  if Y > 0.008856 then Y := fcbrt(Y)
-  else Y := (7.787 * Y) + 0.137931;
-  
-  if Z > 0.008856 then Z := fcbrt(Z)
-  else Z := (7.787 * Z) + 0.137931;
+  vX := (XYZ.X / 255) * XYZ_INV_X;
+  vY := (XYZ.Y / 255);
+  vZ := (XYZ.Z / 255) * XYZ_INV_Z;
 
-  Result.L := (116.0 * Y) - 16.0;
-  Result.A := 545.183 * (X*1.001502 - Y);
-  Result.B := 201.824 * (Y - Z*0.927445); 
+  vR := vX *  3.2406 + vY * -1.5372 + vZ * -0.4986;
+  vG := vX * -0.9689 + vY *  1.8758 + vZ *  0.0415;
+  vB := vX *  0.0557 + vY * -0.2040 + vZ *  1.0570;
+
+  if (vR > 0.0031308) then vR := 1.055 * Power(vR, 1/2.4) - 0.055
+  else                     vR := 12.92 * vR;
+  if (vG > 0.0031308) then vG := 1.055 * Power(vG, 1/2.4) - 0.055
+  else                     vG := 12.92 * vG;
+  if (vB > 0.0031308) then vB := 1.055 * Power(vB, 1/2.4) - 0.055
+  else                     vB := 12.92 * vB;
+
+  Result.R := Round(vR * 255);
+  Result.G := Round(vG * 255);
+  Result.B := Round(vB * 255);
 end;
 
+(*
+  Converts XYZ to RGB
+  
+  Input:  X,Y,Z in range [0..255]
+  Output: Integer rep of the RGB values
+*)
+function XYZToColor(HSL: ColorXYZ): TColor;
+begin
+  Result := RGBToColor(XYZToRGB(HSL));
+end;
 
 (*
   Converts Color(RGB) to (non standard)LAB
 
   Output:
     L range [0..100]
-    A range [-100..100]
-    B range [-100..100]
+    A range [-92..92]
+    B range [-113..92]
 *)
 function ColorToLAB(Color: TColor): ColorLAB;
 var
-  iR,iG,iB:Byte;
-  vR,vG,vB,X,Y,Z: Single;
+  R,G,B:Byte;
+  vR,vG,vB, X,Y,Z: Single;
 begin
-  iR := color shr R_BIT and $FF;
-  iG := color shr G_BIT and $FF;
-  iB := color shr B_BIT and $FF;
+  R := color shr R_BIT and $FF;
+  G := color shr G_BIT and $FF;
+  B := color shr B_BIT and $FF;
 
-  if iR > 10 then vR := XYZ_POW_2_4[iR]
-  else vR := (iR / 255.0) / 12.92;
+  if R > 10 then vR := XYZ_POW_2_4[R]
+  else           vR := (R / 255.0) / 12.92;
+  if G > 10 then vG := XYZ_POW_2_4[G]
+  else           vG := (G / 255.0) / 12.92;
+  if B > 10 then vB := XYZ_POW_2_4[B]
+  else           vB := (B / 255.0) / 12.92;
   
-  if iG > 10 then vG := XYZ_POW_2_4[iG]
-  else vG := (iG / 255.0) / 12.92;
+  // Illuminant = D65
+  X := (vR * 0.4124 + vG * 0.3576 + vB * 0.1805);
+  Y := (vR * 0.2126 + vG * 0.7152 + vB * 0.0722);
+  Z := (vR * 0.0193 + vG * 0.1192 + vB * 0.9505); 
   
-  if iB > 10 then vB := XYZ_POW_2_4[iB]
-  else vB := (iB / 255.0) / 12.92;
+  // XYZ To LAB
+  if X > 0.008856 then X := fcbrt(X)
+  else                 X := (7.787 * X) + 0.137931;
+  if Y > 0.008856 then Y := fcbrt(Y)
+  else                 Y := (7.787 * Y) + 0.137931;
+  if Z > 0.008856 then Z := fcbrt(Z)
+  else                 Z := (7.787 * Z) + 0.137931;
+  
+  Result.L := (116.0 * Y) - 16.0;
+  Result.A := 500 * (X - Y);
+  Result.B := 200 * (Y - Z);   
+end;
 
-  X := vR * 0.4124 + vG * 0.3576 + vB * 0.1805;
-  Y := vR * 0.2126 + vG * 0.7152 + vB * 0.0722;
-  Z := vR * 0.0193 + vG * 0.1192 + vB * 0.9505; 
+(*
+  Converts XYZ to CIELAB
+  Input:
+    X,Y and Z in the range 0..255
+
+  Output:
+    L range [0..100]
+    A range [-92..92]
+    B range [-113..92]
+*)
+function XYZToLAB(XYZ: ColorXYZ): ColorLAB;
+var X,Y,Z: Single;
+begin
+  X := (XYZ.X / 255) * XYZ_INV_X;
+  Y := (XYZ.Y / 255);
+  Z := (XYZ.Z / 255) * XYZ_INV_Z;
 
   if X > 0.008856 then X := fcbrt(X)
   else X := (7.787 * X) + 0.137931;
+
   if Y > 0.008856 then Y := fcbrt(Y)
   else Y := (7.787 * Y) + 0.137931;
+
   if Z > 0.008856 then Z := fcbrt(Z)
   else Z := (7.787 * Z) + 0.137931;
 
   Result.L := (116.0 * Y) - 16.0;
-  Result.A := 545.183 * (X*1.001502 - Y);
-  Result.B := 201.824 * (Y - Z*0.927445); 
+  Result.A := 500 * (X - Y);
+  Result.B := 200 * (Y - Z);
+end; 
+
+function LABToXYZ(LAB: ColorLAB): ColorXYZ;
+var
+  vX,vY,vZ,vX3,vY3,vZ3: Single;
+begin
+  vY := (LAB.L + 16) / 116;
+  vX := LAB.A / 500 + vY;
+  vZ := vY - LAB.B / 200;
+
+  vX3 := vX*vX*vX;
+  vY3 := vY*vY*vY;
+  vZ3 := vZ*vZ*vZ;
+  if(vX3 > 0.008856) then vX := vX3
+  else                    vX := (vX - 16 / 116) / 7.787;
+  if(vY3 > 0.008856) then vY := vY3
+  else                    vY := (vY - 16 / 116) / 7.787;
+  if(vZ3 > 0.008856) then vZ := vZ3
+  else                    vZ := (vZ - 16 / 116) / 7.787;
+
+  Result.X := (vX * 255) * XYZ_NORM_X;
+  Result.Y := (vY * 255);
+  Result.Z := (vZ * 255) * XYZ_NORM_Z;
 end;
 
-
-(*
-  Converts LAB to LCH
-
-  Input (assumed):
-    L range [0..100]
-    A range [-100..100]
-    B range [-100..100]
-
-  Output (based on assumed input):
-    L range [0..100]
-    C range [0..100]
-    H value is in degrees [0..360]
-*)
-function LABToLCH(LAB: ColorLAB): ColorLCH;
+function LABToRGB(LAB: ColorLAB): ColorRGB;
 begin
-  Result.L := LAB.L;
-  Result.C := Sqrt(Sqr(LAB.A) + Sqr(LAB.B)) * 0.707106781186548;
-  Result.H := ArcTan2(LAB.B, LAB.A);
-  
-  if (Result.H > 0) then
-    Result.H := (Result.H / PI) * 180
-  else 
-    Result.H := 360 - (-Result.H / PI) * 180;
+  Result := XYZToRGB(LABToXYZ(LAB));
+end;
+
+function LABToColor(LAB: ColorLAB): TColor;
+begin
+  Result := RGBToColor(LABToRGB(LAB));
 end;
 
 
@@ -315,13 +382,83 @@ var
 begin
   LAB := ColorToLAB(Color);
   Result.L := LAB.L;
-  Result.C := Sqrt(Sqr(LAB.A) + Sqr(LAB.B)) * 0.70710678118;
-  Result.H := ArcTan2(LAB.B,LAB.A);
+  Result.C := Sqrt(Sqr(LAB.A) + Sqr(LAB.B)) * HALF_SQRT2;
+  Result.H := ArcTan2(LAB.B, LAB.A);
 
   if (Result.H > 0) then
     Result.H := (Result.H / PI) * 180
   else
-    Result.H := 360 - (-Result.H / PI) * 180;
+    Result.H := 360 - (Abs(Result.H) / PI) * 180;
+end;
+
+(*
+  Converts XYZ to LCH
+  
+  Output:
+    L range [0..100]
+    C range [0..100]
+    H value is in degrees [0..360]
+*)
+function XYZToLCH(XYZ: ColorXYZ): ColorLCH;
+var
+  LAB: ColorLAB;
+begin
+  LAB := XYZToLAB(XYZ);
+  Result.L := LAB.L;
+  Result.C := Sqrt(Sqr(LAB.A) + Sqr(LAB.B)) * HALF_SQRT2;
+  Result.H := ArcTan2(LAB.B, LAB.A);
+
+  if (Result.H > 0) then
+    Result.H := (Result.H / PI) * 180
+  else
+    Result.H := 360 - (Abs(Result.H) / PI) * 180;
+end;
+
+(*
+  Converts LAB to LCH
+
+  Input (roughly):
+    L range [0..100]
+    A range [-92..92]
+    B range [-113..92]
+  
+  Output (roughly):
+    L range [0..100]
+    C range [0..100] (actual: 0..96)
+    H value is in degrees [0..360]
+*)
+function LABToLCH(LAB: ColorLAB): ColorLCH;
+begin
+  Result.L := LAB.L;
+  Result.C := Sqrt(Sqr(LAB.A) + Sqr(LAB.B)) * HALF_SQRT2;
+  Result.H := ArcTan2(LAB.B, LAB.A);
+
+  if (Result.H > 0) then
+    Result.H := (Result.H / PI) * 180
+  else
+    Result.H := 360 - (Abs(Result.H) / PI) * 180;
+end;
+
+function LCHToLAB(LCH: ColorLCH): ColorLAB;
+begin
+  Result.L := LCH.L;
+  Result.A := Cos(DegToRad(LCH.H)) * LCH.C * SQRT2;
+  Result.B := Sin(DegToRad(LCH.H)) * LCH.C * SQRT2;
+end;
+
+function LCHToXYZ(LCH: ColorLCH): ColorXYZ;
+begin
+  Result := LABToXYZ(LCHToLAB(LCH));
+end;
+
+function LCHToRGB(LCH: ColorLCH): ColorRGB;
+begin
+  Result := LABToRGB(LCHToLAB(LCH));
+end;
+
+function LCHToColor(LCH: ColorLCH): TColor;
+begin
+  Result := RGBToColor(LCHToRGB(LCH));
 end;
 
 
@@ -445,11 +582,8 @@ end;
     Integer rep of the RGB values
 *)
 function HSVToColor(HSV: ColorHSV): TColor;
-var
-  RGB: ColorRGB;
 begin
-  RGB := HSVToRGB(HSV);
-  Result := RGB.R shl B_BIT or RGB.G shl G_BIT or RGB.B shl R_BIT;
+  Result := RGBToColor(HSVToRGB(HSV));
 end;
 
 
@@ -543,11 +677,8 @@ end;
     Integer rep of the RGB values
 *)
 function HSLToColor(HSL: ColorHSL): TColor;
-var
-  RGB: ColorRGB;
 begin
-  RGB := HSLToRGB(HSL);
-  Result := RGB.R shl B_BIT or RGB.G shl G_BIT or RGB.B shl R_BIT;
+  Result := RGBToColor(HSLToRGB(HSL));
 end;
 
 

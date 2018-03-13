@@ -32,22 +32,25 @@ implementation
 uses
   Math, SysUtils, ColorConversion;
 
-//----| RGB |-----------------------------------------------------------------//
+// ----| RGB |-----------------------------------------------------------------
 function DistanceRGB(Color1: Pointer; Color2: TColor; mul: TMultiplier): Single;
 var
   C1,C2: ColorRGB;
 begin
   C1 := PColorRGB(Color1)^;
   C2 := ColorToRGB(Color2);
-  Result := Sqrt(Sqr(C1.R-C2.R)*mul[0] + Sqr(C1.G-C2.G)*mul[1] + Sqr(C1.B-C2.B)*mul[2]);
+  Result := Sqrt(Sqr((C1.R-C2.R) * mul[0]) + Sqr((C1.G-C2.G) * mul[1]) + Sqr((C1.B-C2.B) * mul[2]));
 end;
 
 function DistanceRGB_Max(mul: TMultiplier): Single;
 begin
-  Result := Sqrt(Sqr(255)*mul[0] + Sqr(255)*mul[1] + Sqr(255)*mul[2]);
+  Result := Sqrt(Sqr(255 * mul[0]) + Sqr(255 * mul[1]) + Sqr(255 * mul[2]));
 end;
 
-//----| HSV |-----------------------------------------------------------------//
+// ----| HSV |-----------------------------------------------------------------
+// Hue is weighted based on max saturation of the two colors:
+// The "simple" solution causes a problem where two dark slightly saturated gray colors can have 
+// completely different hue's, causing the distance measure to be larger than what it should be.
 function DistanceHSV(Color1: Pointer; Color2: TColor; mul: TMultiplier): Single;
 var
   C1,C2: ColorHSV;
@@ -61,16 +64,20 @@ begin
   else begin
     deltaH := Abs(C1.H - C2.H);
     if deltaH >= 180 then deltaH := 360 - deltaH;
+    deltaH *= Max(C1.S, C2.S) / 100;
   end;
-  Result := Sqrt(Sqr(deltaH)*mul[0] + Sqr(C1.S-C2.S)*mul[1] + Sqr(C1.V-C2.V)*mul[2]);
+  Result := Sqrt(Sqr(deltaH * mul[0]) + Sqr((C1.S-C2.S) * mul[1]) + Sqr((C1.V-C2.V) * mul[2]));
 end;
 
 function DistanceHSV_Max(mul: TMultiplier): Single;
 begin
-  Result := Sqrt(Sqr(180)*mul[0] + Sqr(100)*mul[1] + Sqr(100)*mul[2]);
+  Result := Sqrt(Sqr(180 * mul[0]) + Sqr(100 * mul[1]) + Sqr(100 * mul[2]));
 end;
 
-//----| HSL |-----------------------------------------------------------------//
+// ----| HSL |-----------------------------------------------------------------
+// Hue is weighted based on max saturation of the two colors:
+// The "simple" solution causes a problem where two dark slightly saturated gray colors can have 
+// completely different hue's, causing the distance measure to be larger than what it should be.
 function DistanceHSL(Color1: Pointer; Color2: TColor; mul: TMultiplier): Single;
 var
   C1,C2: ColorHSL;
@@ -78,53 +85,57 @@ var
 begin
   C1 := PColorHSL(Color1)^;
   C2 := ColorToHSL(Color2);
-  
+
   if (C1.S < 1.0e-10) or (C2.S < 1.0e-10) then // no saturation = gray (hue has no value here)
     deltaH := 0
   else begin
     deltaH := Abs(C1.H - C2.H);
     if deltaH >= 180 then deltaH := 360 - deltaH;
+    deltaH *= Max(C1.S, C2.S) / 100;
   end;
-  Result := Sqrt(Sqr(deltaH)*mul[0] + Sqr(C1.S-C2.S)*mul[1] + Sqr(C1.L-C2.L)*mul[2]);
+  Result := Sqrt(Sqr(deltaH * mul[0]) + Sqr((C1.S-C2.S) * mul[1]) + Sqr((C1.L-C2.L) * mul[2]));
 end;
 
 function DistanceHSL_Max(mul: TMultiplier): Single;
 begin
-  Result := Sqrt(Sqr(180)*mul[0] + Sqr(100)*mul[1] + Sqr(100)*mul[2]);
+  Result := Sqrt(Sqr(180 * mul[0]) + Sqr(100 * mul[1]) + Sqr(100 * mul[2]));
 end;
 
 
-//----| XYZ |-----------------------------------------------------------------//
+// ----| XYZ |-----------------------------------------------------------------
 function DistanceXYZ(Color1:Pointer; Color2:TColor; mul:TMultiplier): Single;
 var C1,C2: ColorXYZ;
 begin
   C1 := PColorXYZ(Color1)^;
   C2 := ColorToXYZ(Color2);
-  Result := Sqrt(Sqr(C1.X-C2.X)*mul[0] + Sqr(C1.Y-C2.Y)*mul[1] + Sqr(C1.Z-C2.Z)*mul[2]);
+  Result := Sqrt(Sqr((C1.X-C2.X) * mul[0]) + Sqr((C1.Y-C2.Y) * mul[1]) + Sqr((C1.Z-C2.Z) * mul[2]));
 end;
 
 function DistanceXYZ_Max(mul:TMultiplier): Single;
 begin
-  Result := Sqrt(Sqr(255)*mul[0] + Sqr(255)*mul[1] + Sqr(255)*mul[2]);
+  Result := Sqrt(Sqr(255 * mul[0]) + Sqr(255 * mul[1]) + Sqr(255 * mul[2]));
 end;
 
 
-//----| LAB |-----------------------------------------------------------------//
+// ----| LAB |-----------------------------------------------------------------
 function DistanceLAB(Color1:Pointer; Color2:TColor; mul:TMultiplier): Single;
 var C1,C2: ColorLAB;
 begin
   C1 := PColorLAB(Color1)^;
   C2 := ColorToLAB(Color2);
-  Result := Sqrt(Sqr(C1.L-C2.L)*mul[0] + Sqr(C1.A-C2.A)*mul[1] + Sqr(C1.B-C2.B)*mul[2]);
+  Result := Sqrt(Sqr((C1.L-C2.L) * mul[0]) + Sqr((C1.A-C2.A) * mul[1]) + Sqr((C1.B-C2.B) * mul[2]));
 end;
 
 function DistanceLAB_Max(mul:TMultiplier): Single;
 begin
-  Result := Sqrt(Sqr(100)*mul[0] + Sqr(200)*mul[1] + Sqr(200)*mul[2]);
+  Result := Sqrt(Sqr(100 * mul[0]) + Sqr(200 * mul[1]) + Sqr(200 * mul[2]));
 end;
 
 
-//----| LCH |-----------------------------------------------------------------//
+// ----| LCH |-----------------------------------------------------------------
+// Hue is weighted based on Chroma:
+// The "simple" solution causes a problem where two dark slightly saturated gray colors can have 
+// completely different hue's, causing the distance measure to be larger than what it should be.
 function DistanceLCH(Color1:Pointer; Color2:TColor; mul:TMultiplier): Single;
 var
   C1,C2: ColorLCH;
@@ -132,25 +143,29 @@ var
 begin
   C1 := PColorLCH(Color1)^;
   C2 := ColorToLCH(Color2);
-  //if (C2.L > 100) or (C2.L < -0.01) or (C2.C > 100) or (C2.C < -0.01) or (C2.H > 360) or (C2.H < -0.01) then
-  //  WriteLn(Format('(%.3f,%.3f,%.3f)', [C2.L,C2.C,C2.H]));
-
-  if (C1.C < 1.0e-10) or (C2.C < 1.0e-10) then // no chroma = gray (hue has no value here)
+  
+  deltaH := Abs(C1.H - C2.H);
+  if deltaH >= 180 then deltaH := 360 - deltaH;
+  deltaH *= Max(C1.C, C2.C) / 100;
+  
+  if (C1.C < 0.4) or (C2.C < 0.4) then // no chromaticity = gray (hue has no value here)
     deltaH := 0
   else begin
     deltaH := Abs(C1.H - C2.H);
     if deltaH >= 180 then deltaH := 360 - deltaH;
+    deltaH *= Max(C1.C, C2.C) / 100;
   end;
-  Result := Sqrt(Sqr(C1.L-C2.L)*mul[0] + Sqr(C1.C-C2.C)*mul[1] + Sqr(deltaH)*mul[2]);
+  
+  Result := Sqrt(Sqr((C1.L-C2.L) * mul[0]) + Sqr((C1.C - C2.C) * mul[1]) + Sqr(deltaH * mul[2]));
 end;
 
 function DistanceLCH_Max(mul:TMultiplier): Single;
 begin
-  Result := Sqrt(Sqr(100)*mul[0] + Sqr(100)*mul[1] + Sqr(180)*mul[2]);
+  Result := Sqrt(Sqr(100 * mul[0]) + Sqr(100 * mul[1]) + Sqr(180 * mul[2]));
 end;
 
 
-//----| DeltaE |--------------------------------------------------------------//
+// ----| DeltaE |--------------------------------------------------------------
 function DistanceDeltaE(Color1:Pointer; Color2:TColor; mul:TMultiplier): Single;
 var
   C1,C2: ColorLAB;
@@ -175,7 +190,7 @@ begin
 
   xDC /= xSC;
   xDH /= xSH;
-  Result := Sqrt(Sqr(xDL)*mul[0] + Sqr(xDC)*mul[1] + Sqr(xDH)*mul[2]);
+  Result := Sqrt(Sqr(xDL * mul[0]) + Sqr(xDC * mul[1]) + Sqr(xDH * mul[2]));
 end;
 
 function DistanceDeltaE_Max(mul:TMultiplier): Single;
@@ -197,7 +212,7 @@ begin
   xdc := xc2 - xc1;
   xde := Sqrt(Sqr(c1.L - c2.L) + Sqr(c1.a - c2.A) + Sqr(c1.b - c2.B));
 
-  if Sqrt(xDE) > Sqrt(Abs(xDL)) + Sqrt(Abs( xDC ))  then
+  if Sqrt(xDE) > Sqrt(Abs(xDL)) + Sqrt(Abs(xDC))  then
      xDH := Sqrt(Sqr(xDE) - Sqr(xDL) - Sqr(xDC))
   else
      xDH := 0;
@@ -207,7 +222,7 @@ begin
 
   xDC /= xSC;
   xDH /= xSH;
-  Result := Sqrt(Sqr(xDL)*mul[0] + Sqr(xDC)*mul[1] + Sqr(xDH)*mul[2]);
+  Result := Sqrt(Sqr(xDL * mul[0]) + Sqr(xDC * mul[1]) + Sqr(xDH * mul[2]));
 end;
 
 end.

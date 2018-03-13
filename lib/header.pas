@@ -47,7 +47,7 @@ type
   PColor = ^TColor;
   TColor = Int32;
   
-  ColorRGB = record R,G,B: Byte;  end;
+  ColorRGB = record R,G,B: Byte;   end;
   ColorXYZ = record X,Y,Z: Single; end;
   ColorLAB = record L,A,B: Single; end;
   ColorLCH = record L,C,H: Single; end;

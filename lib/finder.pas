@@ -30,8 +30,8 @@ type
     FChMul: TMultiplier;
     FThreadPool: TThreadPool;
 
-    function  SetupColorInfo(Color:Int32): Single;
-    procedure FreeColorInfo();   
+    function  SetupColorInfo(const Color: TColor): Single;
+    procedure FreeColorInfo();
   public
     procedure Init(Formula:EDistanceFormula; NumThreads:UInt8; CacheSize:UInt8);
     procedure Free;
@@ -43,6 +43,9 @@ type
     procedure SetMultipliers(Mul: TMultiplier);
     function  GetMultipliers(): TMultiplier;
 
+    function GetMaxDistance(): Single;
+    function SimilarColors(Color1, Color2: TColor; Tolerance: Single): Boolean;
+    function ColorDistance(Color1, Color2: TColor): Single;
     procedure MatchColor(src:TIntMatrix; var dest:TSingleMatrix; color:TColor);
     function FindColor(src:TIntMatrix; out dest:TPointArray; color:TColor; Tolerance:Single): Boolean;
   end;
@@ -186,7 +189,7 @@ end;
 
 (*----| Setup/Unsetup |-------------------------------------------------------*)
 
-function TFinder.SetupColorInfo(Color:Int32): Single;
+function TFinder.SetupColorInfo(const Color: TColor): Single;
 begin
   case FFormula of
     dfRGB:
@@ -236,7 +239,7 @@ begin
         FColorInfo := AllocMem(SizeOf(ColorLAB));
         PColorLAB(FColorInfo)^ := ColorToLAB(Color);
         Result := DistanceDeltaE_Max(FChMul);
-      end; 
+      end;
   end;
 end;
 
@@ -246,9 +249,6 @@ begin
     FreeMem(FColorInfo);
   FColorInfo := nil;
 end;
-
-
-(*----| Getters+Setters |-----------------------------------------------------*)
 
 (*
   Set the compare method used to compute the difference between
@@ -292,15 +292,42 @@ end;
 
 function TFinder.GetMultipliers(): TMultiplier;
 begin
-  Result := FChMul;
+  Writeln(Format('%.3f, %.3f, %.3f', [Self.FChMul[0], Self.FChMul[1],Self.FChMul[2]]));
+  Result := Self.FChMul;
+end;
+
+function TFinder.GetMaxDistance(): Single;
+begin
+  Result := Self.SetupColorInfo(0);
+  Self.FreeColorInfo();
+end;
+
+function TFinder.SimilarColors(Color1, Color2: TColor; Tolerance: Single): Boolean;
+var
+  maxDist, minSimilarity: Single;
+begin
+  minSimilarity := (100-(Tolerance+0.00001)) / 100;
+
+  //Color1  := SwapRGBChannels(Color1);
+  //Color2  := SwapRGBChannels(Color2);
+  maxDist := Self.SetupColorInfo(Color1);
+  Result  := 1 - Self.FCompareFunc(FColorInfo, Color2, FChMul) / maxDist > minSimilarity;
+  Self.FreeColorInfo();
+end;
+
+function TFinder.ColorDistance(Color1, Color2: TColor): Single;
+var
+  maxDist: Single;
+begin
+  //Color1  := SwapRGBChannels(Color1);
+  //Color2  := SwapRGBChannels(Color2);
+  maxDist := Self.SetupColorInfo(Color1);
+  Result  := FCompareFunc(FColorInfo, Color2, FChMul) / maxDist * 100;
+  Self.FreeColorInfo();
 end;
 
 
-  
-(*----| Methods |-------------------------------------------------------------*)
-(*
-  Threaded cross-correlate a color with an image
-*)
+// Threaded cross-correlate a color with an image
 procedure TFinder.MatchColor(src:TIntMatrix; var dest:TSingleMatrix; color:TColor);
 var
   W,H: Int32;
@@ -310,7 +337,7 @@ begin
   if (H = 0) then Exit;
   W := Length(src[0]);
 
-  color := SwapRGBChannels(color);
+  //color := SwapRGBChannels(color);
   maxDist := Self.SetupColorInfo(Color);
   SetLength(dest, H,W);
   
@@ -322,16 +349,16 @@ function TFinder.FindColor(src:TIntMatrix; out dest:TPointArray; color:TColor; T
 var
   x,y,c: Int32;
   xcorr: TSingleMatrix;
-  min: Single;
+  MinSimilarity: Single;
 begin
   MatchColor(src, xcorr, color);
-  min := (100-(Tolerance+0.00001)) / 100;
+  MinSimilarity := (100-(Tolerance+0.00001)) / 100;
 
   SetLength(dest, 512);
   c := 0;
   for y:=0 to High(xcorr) do
     for x:=0 to High(xcorr[y]) do
-      if xcorr[y,x] > min then
+      if xcorr[y,x] > MinSimilarity then
       begin
         if c = Length(dest) then
           SetLength(dest, Length(dest)*2);

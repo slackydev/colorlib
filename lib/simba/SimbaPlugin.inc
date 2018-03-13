@@ -10,7 +10,7 @@ var
   memIsset: Boolean = False;
 
 
-procedure ExportMethod(ProcAddr: Pointer; ProcDef: PChar);
+procedure ExportMethod(ProcAddr: Pointer; const ProcDef: PChar);
 var len: Int32;
 begin
   len := Length(methods);
@@ -19,7 +19,7 @@ begin
   methods[len].ProcDef := ProcDef;
 end;
 
-procedure ExportNativeMethod(ProcAddr: Pointer; ProcDef: AnsiString);
+procedure ExportNativeMethod(ProcAddr: Pointer; const ProcDef: AnsiString); //bugged!!!!!!
 begin
   ExportMethod(ProcAddr, PChar(ProcDef + ' native;'));
 end;
