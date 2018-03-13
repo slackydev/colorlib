@@ -266,6 +266,7 @@ begin
     Self.SetFormula(CS);
     Self.Best := [];
     Self.ComputeBestColor();
+    //WriteLn(CS, ' -> ', Best);
     if Best.Tolerance < tmpBest then
     begin
       Result := CS;
@@ -274,7 +275,7 @@ begin
   end;
 end;
 
-function TACACore.WriteBestColor(DynamicFormula: Boolean; ColorArr: TIntegerArray): TBestColor;
+function TACACore.Run(ColorArr: TIntegerArray; DynamicFormula: Boolean=False): TBestColor;
 begin
   Colors := TColorArray(ColorArr);
   if DynamicFormula then Self.SetFormula(Self.GetBestFormula(ColorArr));
@@ -297,14 +298,14 @@ begin
   ACA.Init();
   ACA.SetFormula(dfHSL);
 
-  ACA.WriteBestColor(True, [2917795, 3118508, 2797232, 3503523, 2391452, 1476245, 3842226, 4231344, 5358275, 8573905, 5013166, 3957405, 10498960, 10632073, 9975925, 9782629, 8338245, 8734542, 6921791, 4751137, 4353353, 4088136, 4418125]);
-//ACA.WriteBestColor(True, [9424110,1395832,3105992,7575770,12745291]);
-//ACA.WriteBestColor(True, [983290, 333055]);
-//ACA.WriteBestColor(True, [65539, 1]);
-//ACA.WriteBestColor(True, [3090979, 2039583]);
-//ACA.WriteBestColor(True, [2, 255, $1177AA]);
-//ACA.WriteBestColor(True, [ColorHSL([00,100,50]).ToColor, ColorHSL([180,100,50]).ToColor]);
-  
+//ACA.Run([2917795, 3118508, 2797232, 3503523, 2391452, 1476245, 3842226, 4231344, 5358275, 8573905, 5013166, 3957405, 10498960, 10632073, 9975925, 9782629, 8338245, 8734542, 6921791, 4751137, 4353353, 4088136, 4418125]);
+//ACA.Run([9424110,1395832,3105992,7575770,12745291]);
+//ACA.Run([983290, 333055]);
+//ACA.Run([65539, 1]);
+//ACA.Run([3090979, 2039583]);
+  ACA.Run([2, 255, $1177AA]);
+//ACA.Run([ColorHSL([00,100,50]).ToColor, ColorHSL([180,100,50]).ToColor]);
+
   ACA.Free();
 end;
 {$ENDIF}
