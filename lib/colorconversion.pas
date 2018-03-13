@@ -159,9 +159,9 @@ end;
 function SwapRGBChannels(RGB: TColor): TColor;
 var tmp: ColorRGB;
 begin
-  tmp.B := RGB shr B_BIT and $FF;
+  tmp.B := RGB shr R_BIT and $FF;
   tmp.G := RGB shr G_BIT and $FF;
-  tmp.R := RGB shr R_BIT and $FF;
+  tmp.R := RGB shr B_BIT and $FF;
   Result := tmp.R or tmp.G shl 8 or tmp.B shl 16;
 end;
 

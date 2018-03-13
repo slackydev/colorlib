@@ -283,14 +283,18 @@ begin
 end;
 
 function TACACore.Run(ColorArr: TIntegerArray; DynamicFormula: Boolean=False): TBestColor;
+var i: Int32;
 begin
   Colors := TColorArray(ColorArr);
+  for i:=0 to High(Colors) do
+    client.WriteLn(IntToHex(Colors[i], 6));
+
   if DynamicFormula then Self.SetFormula(Self.GetBestFormula(ColorArr));
   ComputeBestColor();
   Result := Best;
 
   client.WriteLn('+----| '+ToStr(Self.Formula)+' |-----------------------------------------+');
-  client.WriteLn('| Color:     $'+ IntToHex(Best.Color,6)+ '  |  '+ ToStr(Best.Color.ToRGB));
+  client.WriteLn('| Color:     '+ ToStr(Best.Color)+ '  |  '+ ToStr(Best.Color.ToRGB));
   client.WriteLn('| Tolerance: '+ ToStr(Best.Tolerance));
   client.WriteLn('| Modifiers: '+ ToStr(Best.Mods));
   client.WriteLn('+------------------------------------------------------+');

@@ -307,9 +307,8 @@ var
   maxDist, minSimilarity: Single;
 begin
   minSimilarity := (100-(Tolerance+0.00001)) / 100;
-
-  //Color1  := SwapRGBChannels(Color1);
-  //Color2  := SwapRGBChannels(Color2);
+  Color1  := SwapRGBChannels(Color1);
+  Color2  := SwapRGBChannels(Color2);
   maxDist := Self.SetupColorInfo(Color1);
   Result  := 1 - Self.FCompareFunc(FColorInfo, Color2, FChMul) / maxDist > minSimilarity;
   Self.FreeColorInfo();
@@ -319,8 +318,8 @@ function TFinder.ColorDistance(Color1, Color2: TColor): Single;
 var
   maxDist: Single;
 begin
-  //Color1  := SwapRGBChannels(Color1);
-  //Color2  := SwapRGBChannels(Color2);
+  Color1  := SwapRGBChannels(Color1);
+  Color2  := SwapRGBChannels(Color2);
   maxDist := Self.SetupColorInfo(Color1);
   Result  := FCompareFunc(FColorInfo, Color2, FChMul) / maxDist * 100;
   Self.FreeColorInfo();
@@ -337,7 +336,7 @@ begin
   if (H = 0) then Exit;
   W := Length(src[0]);
 
-  //color := SwapRGBChannels(color);
+  color := SwapRGBChannels(color);
   maxDist := Self.SetupColorInfo(Color);
   SetLength(dest, H,W);
   
