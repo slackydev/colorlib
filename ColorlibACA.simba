@@ -134,7 +134,14 @@ var
 begin
   if Length(Colors) = 1 then
   begin
-    CL := Colors[0].ToHSL;
+    case Self.Formula of
+      dfRGB: CL := Colors[i].ToRGB;
+      dfXYZ: CL := Colors[i].ToXYZ;
+      dfLAB: CL := Colors[i].ToLAB;
+      dfHSV: CL := Colors[i].ToHSV;
+      dfHSL: CL := Colors[i].ToHSL;
+      dfLCH, dfDeltaE: CL := Colors[i].ToLCH;
+    end;
     Exit(TColorRange([CL.A, CL.B, CL.C, CL.A, CL.B, CL.C]));
   end;
 
@@ -282,11 +289,11 @@ begin
   ComputeBestColor();
   Result := Best;
 
-  WriteLn('+----| ',Self.Formula,' |-----------------------------------------+');
-  WriteLn('| Color:     $', IntToHex(Best.Color,6), '  |  ', Best.Color.ToRGB);
-  WriteLn('| Tolerance: ', Best.Tolerance);
-  WriteLn('| Modifiers: ', Best.Mods);
-  WriteLn('+------------------------------------------------------+');
+  client.WriteLn('+----| '+ToStr(Self.Formula)+' |-----------------------------------------+');
+  client.WriteLn('| Color:     $'+ IntToHex(Best.Color,6)+ '  |  '+ ToStr(Best.Color.ToRGB));
+  client.WriteLn('| Tolerance: '+ ToStr(Best.Tolerance));
+  client.WriteLn('| Modifiers: '+ ToStr(Best.Mods));
+  client.WriteLn('+------------------------------------------------------+');
 end;
 
 
@@ -303,7 +310,8 @@ begin
 //ACA.Run([983290, 333055]);
 //ACA.Run([65539, 1]);
 //ACA.Run([3090979, 2039583]);
-  ACA.Run([2, 255, $1177AA]);
+//ACA.Run([2, 255, $1177AA]);
+  ACA.Run([$FFFFFF]);
 //ACA.Run([ColorHSL([00,100,50]).ToColor, ColorHSL([180,100,50]).ToColor]);
 
   ACA.Free();
