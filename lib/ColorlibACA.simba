@@ -1,0 +1,287 @@
+{$i colorlib/colorlib.simba}
+(*
+  ACA kind of tool for colorlib. It may not give the very best color and modifiers,
+  but should at least give a good estimate if I got it right.
+*)
+type
+  THSLCylinder = record H1,S1,L1, H2,S2,L2: Extended; end;
+  THueRange    = record Low,High: Extended; end;
+  TColorRange  = record A1,B1,C1, A2,B2,C2: Extended; end;
+  TSuperColor  = record A,B,C: Single; end;
+
+  {$IFNDECL SRL}TColorArray  = array of TColor;{$ENDIF}
+
+  TBestColor = record
+    Color: TColor;
+    Mods: TChMultiplier;
+    Tolerance: Single;
+  end;
+
+  TACACore = record
+    Finder: TFinder;
+    Formula: EDistanceFormula;
+
+    Colors: TColorArray;
+    Best: TBestColor;
+  end;
+
+{$ifndef codeinsight}
+operator := (var Left: TSuperColor; Right: ColorRGB): TSuperColor;
+begin
+  Left.A := Right.R;
+  Left.B := Right.G;
+  Left.C := Right.B;
+  Result := Left;
+end;
+
+operator := (var Left: TSuperColor; Right: ColorXYZ): TSuperColor;
+begin
+  Result := Left := TSuperColor(Right);
+end;
+
+operator := (var Left: TSuperColor; Right: ColorLAB): TSuperColor;
+begin
+  Result := Left := TSuperColor(Right);
+end;
+
+operator := (var Left: TSuperColor; Right: ColorLCH): TSuperColor;
+begin
+  Result := Left := TSuperColor(Right);
+end;
+
+operator := (var Left: TSuperColor; Right: ColorHSV): TSuperColor;
+begin
+  Result := Left := TSuperColor(Right);
+end;
+
+operator := (var Left: TSuperColor; Right: ColorHSL): TSuperColor;
+begin
+  Result := Left := TSuperColor(Right);
+end;
+{$endif}
+
+
+procedure TACACore.Init(CS: EDistanceFormula);
+begin
+  Self.Formula := CS;
+  Self.Finder.Init(CS);
+end;
+
+procedure TACACore.Free();
+begin
+  Self.Finder.Free();
+end;
+
+procedure TACACore.SetFormula(CS: EDistanceFormula);
+begin
+  Self.Formula := CS;
+  Self.Finder.SetFormula(CS);
+end;
+
+function TACACore.DeltaAngle(DegA, DegB: Double): Double; static;
+begin
+  Result := DegA - DegB;
+  while Result < -180 do Result += 360;
+  while Result > 180  do Result -= 360;
+end;
+
+function TACACore.MeanAngle(Arr: TExtendedArray): Double; static;
+var
+  i: Int32;
+  x,y: Extended;
+begin
+  for i:=0 to High(arr) do
+  begin
+    x += Cos(Radians(arr[i]));
+    y += Sin(Radians(arr[i]));
+  end;
+  Result := FixD(Degrees(ArcTan2(y / Length(Arr), x / Length(Arr))));
+end;
+
+function TACACore.NormalizeMods(Mods:TChMultiplier): TChMultiplier; static;
+var x: Double;
+begin
+  x := (Mods[0] + Mods[1] + Mods[2]) / 3;
+  Result[0] := Mods[0] / x;
+  Result[1] := Mods[1] / x;
+  Result[2] := Mods[2] / x;
+end;
+
+function TACACore.GetHue(var H1,H2: Extended): Extended; constref;
+var
+  x,y: Extended;
+  hue,tol: Single;
+  i: Int32;
+begin
+  Result := MeanAngle([H1,H2]);
+
+  for i:=0 to High(Colors) do
+  begin
+    tol := Max(Abs(DeltaAngle(Result, H1)), Abs(DeltaAngle(Result, H2)));
+
+    case Formula of
+      dfHSL: hue := Colors[i].ToHSL.H;
+      dfHSV: hue := Colors[i].ToHSV.H;
+      dfLCH, dfDeltaE: hue := Colors[i].ToLCH.H;
+    end;
+
+    if DeltaAngle(hue, Result) > +Tol then H2 := hue;
+    if DeltaAngle(hue, Result) < -Tol then H1 := hue;
+  end;
+end;
+
+
+function TACACore.ColorRange(): TColorRange;
+var
+  CL: TSuperColor;
+  i: Int32;
+begin
+  if Length(Colors) = 1 then
+  begin
+    CL := Colors[0].ToHSL;
+    Exit(TColorRange([CL.A, CL.B, CL.C, CL.A, CL.B, CL.C]));
+  end;
+
+  Result := [10000,10000,10000, -10000,-10000,-10000];
+  for i:=0 to High(Colors) do
+  begin
+    case Self.Formula of
+      dfRGB: CL := Colors[i].ToRGB;
+      dfXYZ: CL := Colors[i].ToXYZ;
+      dfLAB: CL := Colors[i].ToLAB;
+      dfHSV: CL := Colors[i].ToHSV;
+      dfHSL: CL := Colors[i].ToHSL;
+      dfLCH, dfDeltaE: CL := Colors[i].ToLCH;
+    end;
+
+    if CL.A > Result.A2 then Result.A2 := CL.A;
+    if CL.A < Result.A1 then Result.A1 := CL.A;
+    if CL.B > Result.B2 then Result.B2 := CL.B;
+    if CL.B < Result.B1 then Result.B1 := CL.B;
+    if CL.C > Result.C2 then Result.C2 := CL.C;
+    if CL.C < Result.C1 then Result.C1 := CL.C;
+  end;
+end;
+
+function TACACore.ColorRangeHue(): THueRange;
+var
+  Hue1, Hue2, delta, maxDelta: Extended;
+  i,j: Int32;
+begin
+  if not(Formula in [dfHSL,dfHSV, dfLCH,dfDeltaE]) then
+    Exit;
+
+  maxDelta := -1;
+  for i:=0 to High(Colors) do
+  begin
+    case Formula of
+      dfHSL: Hue1 := Colors[i].ToHSL.H;
+      dfHSV: Hue1 := Colors[i].ToHSV.H;
+      dfLCH, dfDeltaE: Hue1 := Colors[i].ToLCH.H;
+    end;
+
+    for j:=i+1 to High(Self.Colors) do
+    begin
+      case Formula of
+        dfHSL: Hue2 := Colors[j].ToHSL.H;
+        dfHSV: Hue2 := Colors[j].ToHSV.H;
+        dfLCH, dfDeltaE: Hue2 := Colors[j].ToLCH.H;
+      end;
+
+      delta := Abs(DeltaAngle(Hue1, Hue2));
+      if delta > maxDelta then
+      begin
+        Result.Low  := Hue1;
+        Result.High := Hue2;
+        maxDelta    := delta;
+      end;
+    end;
+  end;
+end;
+
+procedure TACACore.ComputeBestColor();
+var
+  i: Int32;
+  delA,delB,delC: Extended;
+  ABC: TSuperColor;
+  range: TColorRange;
+  hue: THueRange;
+begin
+  range := Self.ColorRange();
+  hue   := Self.ColorRangeHue();
+
+  if(Self.Formula in [dfHSL, dfHSV]) then begin
+    ABC.A := GetHue(hue.Low, hue.High);
+    delA  := Max(Abs(DeltaAngle(ABC.A, hue.Low)), Abs(DeltaAngle(ABC.A, Hue.High)));
+  end else begin
+    ABC.A := (range.A1 + range.A2) / 2;
+    delA  := Abs(range.A1 - range.A2) / 2;
+  end;
+
+  ABC.B := (range.B1 + range.B2) / 2;
+  delB  := Abs(range.B1 - range.B2) / 2;
+
+  if(Self.Formula in [dfLCH, dfDeltaE]) then begin
+    ABC.C := GetHue(hue.Low, hue.High);
+    delC  := Max(Abs(DeltaAngle(ABC.C, hue.Low)), Abs(DeltaAngle(ABC.C, Hue.High)));
+  end else begin
+    ABC.C := (range.C1 + range.C2) / 2;
+    delC  := Abs(range.C1 - range.C2) / 2;
+  end;
+
+  Best.Mods[0] := 1/Max(0.01, delA);
+  Best.Mods[1] := 1/Max(0.01, delB);
+  Best.Mods[2] := 1/Max(0.01, delC);
+  Best.Mods := NormalizeMods(Best.Mods);
+
+  case Formula of
+    dfRGB: Best.Color := ColorRGB([Trunc(ABC.A), Trunc(ABC.B), Trunc(ABC.C)]).ToColor;
+    dfXYZ: Best.Color := ColorXYZ([ABC.A, ABC.B, ABC.C]).ToColor;
+    dfLAB: Best.Color := ColorLAB([ABC.A, ABC.B, ABC.C]).ToColor;
+    dfHSV: Best.Color := ColorHSV([ABC.A, ABC.B, ABC.C]).ToColor;
+    dfHSL: Best.Color := ColorHSL([ABC.A, ABC.B, ABC.C]).ToColor;
+    dfLCH, dfDeltaE: Best.Color := ColorLCH([ABC.A, ABC.B, ABC.C]).ToColor;
+  end;
+
+  Finder.SetMultipliers(Best.Mods);
+  for i:=0 to High(Colors) do
+    Best.Tolerance := Max(Best.Tolerance, Finder.ColorDistance(Best.Color, Colors[i]));
+end;
+
+procedure TACACore.Run(ColorArr: TIntegerArray);
+begin
+  Colors := TColorArray(ColorArr);
+  ComputeBestColor();
+
+  WriteLn('/----| BEST |------------------------------------------\');
+  WriteLn('| Color:     $', IntToHex(Best.Color,6), '  |  ', Best.Color.ToRGB);
+  WriteLn('| Tolerance: ', Best.Tolerance);
+  WriteLn('| Modifiers: ', Best.Mods);
+  WriteLn('\------------------------------------------------------/');
+end;
+
+function TACACore.GetBestColor(ColorArr: TIntegerArray): TBestColor;
+begin
+  Colors := TColorArray(ColorArr);
+  ComputeBestColor();
+  Result := Best;
+end;
+
+
+{$IFDEF TESTING}
+var
+  ACA: TACACore;
+begin
+  ACA.Init(dfXYZ);
+
+  //ACA.Run([2917795, 3118508, 2797232, 3503523, 2391452, 1476245, 3842226, 4231344, 5358275, 8573905, 5013166, 3957405, 10498960, 10632073, 9975925, 9782629, 8338245, 8734542, 6921791, 4751137, 4353353, 4088136, 4418125]);
+  ACA.Run([9424110,1395832,3105992,7575770,12745291]);
+  //ACA.Run([983290, 333055]);
+  //ACA.Run([65539, 1]);
+  //ACA.Run([3090979, 2039583]);
+  //ACA.Run([2, 255, $1177AA]);
+  //ACA.Run([ColorHSL([00,100,50]).ToColor, ColorHSL([180,100,50]).ToColor]);
+  
+  ACA.Free();
+end;
+{$ENDIF}
