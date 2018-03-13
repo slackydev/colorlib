@@ -1,3 +1,4 @@
+{$IFDEF HINTS}{$DEFINE !HAD_HINTS}{$H-}{$ENDIF}
 {$loadlib ../Includes/colorlib/lib/colorlib}
 var
   colorlib: TColorlib;
@@ -82,3 +83,35 @@ begin
   FreeBitmap(bmp);
 end;
 
+
+function ToString(x: ColorRGB): String; override;
+begin
+  Result := Format('RGB(%d, %d, %d)', [x.R,x.G,x.B]);
+end;
+
+function ToString(x: ColorHSL): String; override;
+begin
+  Result := Format('HSL(%.2f, %.2f, %.2f)', [x.H,x.S,x.L]);
+end;
+
+function ToString(x: ColorHSV): String; override;
+begin
+  Result := Format('HSV(%.2f, %.2f, %.2f)', [x.H,x.S,x.V]);
+end;
+
+function ToString(x: ColorXYZ): String; override;
+begin
+  Result := Format('XYZ(%.2f, %.2f, %.2f)', [x.X,x.Y,x.Z]);
+end;
+
+function ToString(x: ColorLAB): String; override;
+begin
+  Result := Format('LAB(%.2f, %.2f, %.2f)', [x.L,x.A,x.B]);
+end;
+
+function ToString(x: ColorLCH): String; override;
+begin
+  Result := Format('LCH(%.2f, %.2f, %.2f)', [x.L,x.C,x.H]);
+end;
+
+{$IFDEF !HAD_HINTS}{$H+}{$ENDIF}
