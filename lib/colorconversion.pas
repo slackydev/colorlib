@@ -11,12 +11,9 @@ interface
 uses
   Math, SysUtils, Header;
 
-//currently set for BGR
 {$DEFINE B_BIT := 16}
 {$DEFINE G_BIT := 8}
 {$DEFINE R_BIT := 0}
-
-
 const
   XYZ_POW_2_4: array[0..255] of Single = (
     0.000834,  0.000984,  0.001148,  0.001328,  0.001523,  0.001733,  0.001960,  0.002203,  0.002463,  0.002740,  0.003035,  0.003347,  0.003677,  0.004025,  0.004391,  0.004777,  0.005182,  0.005605,  0.006049,  0.006512,  0.006995,  0.007499,  0.008023,  0.008568,  0.009134,  0.009721,  0.010330,  0.010960,  0.011612,  0.012286,  0.012983,  0.013702,  0.014444,  0.015209,  0.015996,  0.016807,  0.017642,  0.018500,  0.019382,  0.020289,  0.021219,  0.022174,  0.023153,  0.024158,  0.025187,  0.026241,  0.027321,  0.028426,  0.029557,  0.030713,  0.031896,  0.033105,
@@ -29,16 +26,10 @@ const
   ONE_DIV_THREE:     Single =  1.0 / 3.0;
   TWO_DIV_THREE:     Single =  2.0 / 3.0;
   NEG_ONE_DIV_THREE: Single = -1.0 / 3.0;
-
-  XYZ_NORM_X: Single = 1.0520778890;
-  XYZ_NORM_Z: Single = 0.9182736278;
-  XYZ_INV_X:  Single = 1.0 / 1.0520778890;
-  XYZ_INV_Z:  Single = 1.0 / 0.9182736278;
   
   SQRT2:      Single = 1.414213562373095;
   HALF_SQRT2: Single = 0.5 * 1.414213562373095;
 
-  
 
 function ColorToRGB(Color: TColor): ColorRGB; inline;
 function RGBToColor(RGB: ColorRGB): TColor; inline;
@@ -146,23 +137,27 @@ end;
 *)
 function RGBToColor(RGB: ColorRGB): TColor;
 begin
-  {$IF R_BIT = 16}
-  Result := RGB.B or RGB.G shl 8 or RGB.R shl 16;
-  {$ELSE}
+  {$IF R_BIT = 0}
   Result := RGB.R or RGB.G shl 8 or RGB.B shl 16;
+  {$ELSE}
+  Result := RGB.B or RGB.G shl 8 or RGB.R shl 16;
   {$EndIf}
 end;
 
 (*
-  Converts R,G,B values to an integer representation of the color
+  Swaps the R,G,B channels if needed to the opposite of Simba.
 *)
 function SwapRGBChannels(RGB: TColor): TColor;
 var tmp: ColorRGB;
 begin
-  tmp.B := RGB shr R_BIT and $FF;
-  tmp.G := RGB shr G_BIT and $FF;
-  tmp.R := RGB shr B_BIT and $FF;
-  Result := tmp.R or tmp.G shl 8 or tmp.B shl 16;
+  {$IF R_BIT = 0}
+    tmp.B := RGB shr R_BIT and $FF;
+    tmp.G := RGB shr G_BIT and $FF;
+    tmp.R := RGB shr B_BIT and $FF;
+    Result := tmp.R or tmp.G shl 8 or tmp.B shl 16;
+  {$ELSE}
+    Result := RGB;
+  {$ENDIF}
 end;
 
 
@@ -190,7 +185,7 @@ end;
 
 (*
   Converts Color(RGB) to CIE-XYZ
-  X,Y and Z are in the range 0..255 
+  X,Y and Z are in the range 0..100
 *)
 function ColorToXYZ(Color: TColor): ColorXYZ;
 var
@@ -208,21 +203,21 @@ begin
   if B > 10 then vB := XYZ_POW_2_4[B]
   else           vB := (B / 255.0) / 12.92;
 
-  vR := vR * 255; //Same range as RGB
-  vG := vG * 255;
-  vB := vB * 255;
+  vR := vR * 100;
+  vG := vG * 100;
+  vB := vB * 100;
 
   // Illuminant = D65
-  Result.X := (vR * 0.4124 + vG * 0.3576 + vB * 0.1805) * XYZ_NORM_X;
+  Result.X := (vR * 0.4124 + vG * 0.3576 + vB * 0.1805);
   Result.Y := (vR * 0.2126 + vG * 0.7152 + vB * 0.0722);
-  Result.Z := (vR * 0.0193 + vG * 0.1192 + vB * 0.9505) * XYZ_NORM_Z;
+  Result.Z := (vR * 0.0193 + vG * 0.1192 + vB * 0.9505);
 end; 
 
 (*
   Converts XYZ to RGB
 
   Input:
-    X,Y,Z in range [0..255]
+    X,Y,Z in range [0..100]
   Output: 
     R,G,B is in range of [0..255]
 *)
@@ -230,9 +225,9 @@ function XYZToRGB(XYZ: ColorXYZ): ColorRGB;
 var
   vR,vG,vB,vX,vY,vZ: Single;
 begin
-  vX := (XYZ.X / 255) * XYZ_INV_X;
-  vY := (XYZ.Y / 255);
-  vZ := (XYZ.Z / 255) * XYZ_INV_Z;
+  vX := XYZ.X / 100;
+  vY := XYZ.Y / 100;
+  vZ := XYZ.Z / 100;
 
   vR := vX *  3.2406 + vY * -1.5372 + vZ * -0.4986;
   vG := vX * -0.9689 + vY *  1.8758 + vZ *  0.0415;
@@ -245,15 +240,15 @@ begin
   if (vB > 0.0031308) then vB := 1.055 * Power(vB, 1/2.4) - 0.055
   else                     vB := 12.92 * vB;
 
-  Result.R := Round(vR * 255);
-  Result.G := Round(vG * 255);
-  Result.B := Round(vB * 255);
+  Result.R := Round(Min(255, Max(0, vR * 255)));
+  Result.G := Round(Min(255, Max(0, vG * 255)));
+  Result.B := Round(Min(255, Max(0, vB * 255)));
 end;
 
 (*
   Converts XYZ to RGB
   
-  Input:  X,Y,Z in range [0..255]
+  Input:  X,Y,Z in range [0..100]
   Output: Integer rep of the RGB values
 *)
 function XYZToColor(HSL: ColorXYZ): TColor;
@@ -316,9 +311,9 @@ end;
 function XYZToLAB(XYZ: ColorXYZ): ColorLAB;
 var X,Y,Z: Single;
 begin
-  X := (XYZ.X / 255) * XYZ_INV_X;
-  Y := (XYZ.Y / 255);
-  Z := (XYZ.Z / 255) * XYZ_INV_Z;
+  X := XYZ.X /  95.047;
+  Y := XYZ.Y / 100.000;
+  Z := XYZ.Z / 108.883;;
 
   if X > 0.008856 then X := fcbrt(X)
   else X := (7.787 * X) + 0.137931;
@@ -352,9 +347,9 @@ begin
   if(vZ3 > 0.008856) then vZ := vZ3
   else                    vZ := (vZ - 16 / 116) / 7.787;
 
-  Result.X := (vX * 255) * XYZ_NORM_X;
-  Result.Y := (vY * 255);
-  Result.Z := (vZ * 255) * XYZ_NORM_Z;
+  Result.X := vX *  95.470;
+  Result.Y := vY * 100.000;
+  Result.Z := vZ * 108.883;
 end;
 
 function LABToRGB(LAB: ColorLAB): ColorRGB;
@@ -382,7 +377,7 @@ var
 begin
   LAB := ColorToLAB(Color);
   Result.L := LAB.L;
-  Result.C := Sqrt(Sqr(LAB.A) + Sqr(LAB.B)) * HALF_SQRT2;
+  Result.C := Sqrt(Sqr(LAB.A) + Sqr(LAB.B));
   Result.H := ArcTan2(LAB.B, LAB.A);
 
   if (Result.H > 0) then
@@ -405,7 +400,7 @@ var
 begin
   LAB := XYZToLAB(XYZ);
   Result.L := LAB.L;
-  Result.C := Sqrt(Sqr(LAB.A) + Sqr(LAB.B)) * HALF_SQRT2;
+  Result.C := Sqrt(Sqr(LAB.A) + Sqr(LAB.B));
   Result.H := ArcTan2(LAB.B, LAB.A);
 
   if (Result.H > 0) then
@@ -424,13 +419,13 @@ end;
   
   Output (roughly):
     L range [0..100]
-    C range [0..100] (actual: 0..96)
+    C range [0..141] (actual: 0..1XX)
     H value is in degrees [0..360]
 *)
 function LABToLCH(LAB: ColorLAB): ColorLCH;
 begin
   Result.L := LAB.L;
-  Result.C := Sqrt(Sqr(LAB.A) + Sqr(LAB.B)) * HALF_SQRT2;
+  Result.C := Sqrt(Sqr(LAB.A) + Sqr(LAB.B));
   Result.H := ArcTan2(LAB.B, LAB.A);
 
   if (Result.H > 0) then
@@ -442,8 +437,8 @@ end;
 function LCHToLAB(LCH: ColorLCH): ColorLAB;
 begin
   Result.L := LCH.L;
-  Result.A := Cos(DegToRad(LCH.H)) * LCH.C * SQRT2;
-  Result.B := Sin(DegToRad(LCH.H)) * LCH.C * SQRT2;
+  Result.A := Cos(DegToRad(LCH.H)) * LCH.C;
+  Result.B := Sin(DegToRad(LCH.H)) * LCH.C;
 end;
 
 function LCHToXYZ(LCH: ColorLCH): ColorXYZ;

@@ -2,6 +2,8 @@
 (*
   ACA kind of tool for colorlib. It may not give the very best color and modifiers,
   but should at least give a good estimate if I got it right.
+
+  LAB colorspace may pose some issues.
 *)
 type
   THueRange    = record Low,High: Extended; end;
@@ -106,7 +108,7 @@ end;
 
 function TACACore.GetHue(var H1,H2: Extended): Extended; constref;
 var
-  hue,tol: Single;
+  hue,tol,lo,hi: Single;
   i: Int32;
 begin
   Result := MeanAngle([H1,H2]);
@@ -121,8 +123,17 @@ begin
       dfLCH, dfDeltaE: hue := Colors[i].ToLCH.H;
     end;
 
-    if DeltaAngle(hue, Result) > +Tol then H2 := hue;
-    if DeltaAngle(hue, Result) < -Tol then H1 := hue;
+    if DeltaAngle(hue, Result) < -Tol then
+    begin
+      H1 := hue;
+      //Result := MeanAngle([MeanAngle([H1,Result]), MeanAngle([Result,H2])]);
+    end;
+
+    if DeltaAngle(hue, Result) > +Tol then
+    begin
+      H2 := hue;
+      //Result := MeanAngle([MeanAngle([H1,Result]), MeanAngle([Result,H2])]);
+    end;
   end;
 end;
 
@@ -174,6 +185,16 @@ begin
   if not(Formula in [dfHSL,dfHSV, dfLCH,dfDeltaE]) then
     Exit;
 
+  if Length(Colors) = 1 then
+  begin
+    case Self.Formula of
+      dfHSL: Result.Low := Result.High := Colors[i].ToHSL.H;
+      dfHSV: Result.Low := Result.High := Colors[i].ToHSV.H;
+      dfLCH, dfDeltaE: Result.Low := Result.High := Colors[i].ToLCH.H;
+    end;
+    Exit();
+  end;
+
   maxDelta := -1;
   for i:=0 to High(Colors) do
   begin
@@ -213,7 +234,7 @@ begin
   Best := [];
   range := Self.ColorRange();
   hue   := Self.ColorRangeHue();
-
+  WriteLn(hue);
   if(Self.Formula in [dfHSL, dfHSV]) then begin
     ABC.A := GetHue(hue.Low, hue.High);
     delA  := Max(Abs(DeltaAngle(ABC.A, hue.Low)), Abs(DeltaAngle(ABC.A, Hue.High)));
@@ -283,11 +304,11 @@ begin
 end;
 
 function TACACore.Run(ColorArr: TIntegerArray; DynamicFormula: Boolean=False): TBestColor;
-var i: Int32;
+//var i: Int32;
 begin
   Colors := TColorArray(ColorArr);
-  for i:=0 to High(Colors) do
-    client.WriteLn(IntToHex(Colors[i], 6));
+  //for i:=0 to High(Colors) do
+  //  client.WriteLn(ToStr(Colors[i].ToHSL));
 
   if DynamicFormula then Self.SetFormula(Self.GetBestFormula(ColorArr));
   ComputeBestColor();
@@ -315,8 +336,9 @@ begin
 //ACA.Run([65539, 1]);
 //ACA.Run([3090979, 2039583]);
 //ACA.Run([2, 255, $1177AA]);
-  ACA.Run([$FFFFFF]);
+//ACA.Run([393471,143615,46078]);
 //ACA.Run([ColorHSL([00,100,50]).ToColor, ColorHSL([180,100,50]).ToColor]);
+//ACA.Run([14549503]);
 
   ACA.Free();
 end;

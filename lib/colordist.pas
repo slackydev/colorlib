@@ -113,7 +113,7 @@ end;
 
 function DistanceXYZ_Max(mul:TMultiplier): Single;
 begin
-  Result := Sqrt(Sqr(255 * mul[0]) + Sqr(255 * mul[1]) + Sqr(255 * mul[2]));
+  Result := Sqrt(Sqr(100 * mul[0]) + Sqr(100 * mul[1]) + Sqr(100 * mul[2]));
 end;
 
 
@@ -153,7 +153,7 @@ begin
   else begin
     deltaH := Abs(C1.H - C2.H);
     if deltaH >= 180 then deltaH := 360 - deltaH;
-    deltaH *= Max(C1.C, C2.C) / 100;
+    deltaH *= Max(C1.C, C2.C) / 142;
   end;
   
   Result := Sqrt(Sqr((C1.L-C2.L) * mul[0]) + Sqr((C1.C - C2.C) * mul[1]) + Sqr(deltaH * mul[2]));
@@ -161,7 +161,7 @@ end;
 
 function DistanceLCH_Max(mul:TMultiplier): Single;
 begin
-  Result := Sqrt(Sqr(100 * mul[0]) + Sqr(100 * mul[1]) + Sqr(180 * mul[2]));
+  Result := Sqrt(Sqr(100 * mul[0]) + Sqr(142 * mul[1]) + Sqr(180 * mul[2]));
 end;
 
 
@@ -199,12 +199,12 @@ var
   xc1,xc2,xdl,xdc,xde,xdh,xsc,xsh: Single;
 begin
   c1.L := 0;
-  c1.A := -100;
-  c1.B := -100;
+  c1.A := -92;
+  c1.B := -113;
 
   c2.L := 100;
-  c2.A := 100;
-  c2.B := 100;
+  c2.A := 92;
+  c2.B := 92;
 
   xc1 := Sqrt(Sqr(C1.a) + Sqr(C1.b));
   xc2 := Sqrt(Sqr(C2.a) + Sqr(C2.b));
