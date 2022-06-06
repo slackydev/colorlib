@@ -130,7 +130,8 @@ begin
   Result  := 1 - Diff(self.Color, TestColor, self.Mods) / self.MaxDiff;
 end;
 
-procedure ColorCorrelation(params:PParamArray);
+//[@src, @dest, @FChMul, @maxDist, @FColorInfo, @FCompareFunc, @FCacheSize]
+procedure ColorCorrelation(params:PParamArray; iLow, iHigh: Int32);
 var
   x,y: Int32;
   src: PIntMatrix;
@@ -149,15 +150,14 @@ begin
     PColorDistFunc(Params^[5])^      //the function needed to compute diff between colors
   );
 
-  box := PBox(Params^[7])^;
   if uCache.High >= 0 then
   begin
-    for y:=box.Y1 to box.Y2 do
-      for x:=box.X1 to box.X2 do
+    for y:=iLow to iHigh do
+      for x:=0 to High(src^[y]) do
         dest^[y,x] := uCache.Compare(src^[y,x]).Diff;
   end else
-    for y:=box.Y1 to box.Y2 do
-      for x:=box.X1 to box.X2 do
+    for y:=iLow to iHigh do
+      for x:=0 to High(src^[y]) do
         dest^[y,x] := uCache.DirectCompare(src^[y,x]);
 end;
 
@@ -339,8 +339,8 @@ begin
   color := SwapRGBChannels(color);
   maxDist := Self.SetupColorInfo(Color);
   SetLength(dest, H,W);
-  
-  FThreadPool.MatrixFunc(@ColorCorrelation, [@src, @dest, @FChMul, @maxDist, @FColorInfo, @FCompareFunc, @FCacheSize], W,H, FNumThreads);
+
+  FThreadPool.DoParallel(@ColorCorrelation, [@src, @dest, @FChMul, @maxDist, @FColorInfo, @FCompareFunc, @FCacheSize], Low(src),High(src), FNumThreads);
   Self.FreeColorInfo();
 end;
 

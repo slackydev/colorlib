@@ -1,78 +1,108 @@
 unit Threading;
-{=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=]
- Copyright (c) 2014, Jarl K. <Slacky> Holta || http://github.com/WarPie
- All rights reserved.
- For more info see: Copyright.txt
-[=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=}
+{==============================================================================]
+  Copyright © 2018, Jarl Krister Holta
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+      http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+  --
+  Standalone unit for basic parallel processing of arrays (needs cpuinfo).
+[==============================================================================}
 {$mode objfpc}{$H+}
 {$modeswitch advancedrecords}
 {$inline on}
 interface
+
 uses
-  SysUtils, Classes, Header;
+  {$ifdef unix}cthreads, cmem,{$endif} // c memory manager can be notably faster on some platforms
+  SysUtils, Classes;
+
 
 type
-  TThreadMethod = procedure(params:PParamArray); 
-  TThreadId = Int32;
-  
+  PParamArray   = ^TParamArray;
+  TParamArray   = array[Word] of Pointer;
+  TThreadMethod = procedure(Params: PParamArray; iLow, iHigh: Int32);
+  EThreadSignal = (tsSleeping, tsAwaiting, tsWorking, tsReady, tsKill);
+
+
   TExecThread = class(TThread)
-  protected
+  private
     FMethod: TThreadMethod;
     FParams: TParamArray;
-    procedure Execute; override;
+    FRangeLo, FRangeHi: Int32;
+    procedure Execute; override; // hide this method to avoid confusion
   public
-    Executed: Boolean;
+    State: EThreadSignal;
+    Temporary: Boolean;
+
     constructor Create();
-    procedure SetMethod(Method: TThreadMethod); inline;
-    procedure SetArgument(argId:Int32; arg:Pointer); inline;
+    procedure SetMethod(Method: TThreadMethod);
+    procedure SetArgument(argId:Int32; arg: Pointer);
+    procedure SetArguments(args: array of Pointer);
+    function Run(iLow, iHigh: Int32): Boolean;
+    function Completed(): Boolean; inline;
   end;
-  
-  TThreadArray = array of record
-    Thread: TExecThread;
-    Available: Boolean;
-    Initialized: Boolean;
-  end;
+  TThreadArray = array of TExecThread;
 
 
   TThreadPool = class(TObject)
+  public
     FMaxThreads: SizeInt;
     FThreads: TThreadArray;
-
+    function FindAvailableThread(): Int32; inline;
+    function PrepareThread(Method: TThreadMethod): TExecThread; inline;
+  public
     constructor Create(MaxThreads: SizeInt);
     destructor Free();
-
-    function GetAvailableThread(): TThreadId;
-    function  NewThread(method: TThreadMethod): TThreadId;
-    procedure SetArgument(t:TThreadId; argId:Int32; arg:Pointer); inline;
-    procedure SetArguments(t:TThreadId; args:array of Pointer);
-    procedure Start(t:TThreadId);
-    function  Executed(t:TThreadId): Boolean; inline;
-    procedure Release(t:TThreadId);
-
-    procedure MatrixFunc(Method:TThreadMethod; Args: array of Pointer; W,H:Int32; nThreads:UInt8; fallback:Int32=256*256);
+    procedure DoParallel(Method: TThreadMethod; Args: array of Pointer; iLow, iHigh: Int32; nThreads: UInt8; Fallback: Boolean=False);
   end;
 
 
+var
+  ThreadPool: TThreadPool;
 
-  
-//--------------------------------------------------
+const
+  NO_THREADS_AVAILABLE = -1;
+
+
 implementation
+
 uses
-  Math;
+  Math, cpuinfo;
 
 
-(*----| WorkThread |----------------------------------------------------------*)
+// ----------------------------------------------------------------------------
+// Execution thread
+
 constructor TExecThread.Create();
 begin
   FreeOnTerminate := True;
-  Executed := False;
-  inherited Create(True);
+  Temporary := False;
+  State     := tsSleeping;
+  inherited Create(False, 1024*512); //default = 4MiB, we set 512KiB
 end;
 
-procedure TExecThread.Execute;
+procedure TExecThread.Execute();
+label startloc;
 begin
-  FMethod(@FParams);
-  Executed := True;
+startloc:
+  Self.Priority := tpIdle;
+  while not(Self.State in [tsReady, tsKill]) do Sleep(1);
+  if (Self.State = tsKill) then Exit;
+  Self.Priority := tpNormal;
+
+  State := tsWorking;
+  FMethod(@FParams, FRangeLo, FRangeHi);
+
+  Self.State := tsSleeping;
+
+  goto startloc;
 end;
 
 procedure TExecThread.SetMethod(Method: TThreadMethod);
@@ -80,132 +110,139 @@ begin
   FMethod := Method;
 end;
 
-procedure TExecThread.SetArgument(argId:Int32; arg:Pointer);
+procedure TExecThread.SetArgument(argId: Int32; arg: Pointer);
 begin
   Self.FParams[argId] := arg;
 end;
 
+procedure TExecThread.SetArguments(args: array of Pointer);
+var arg:Int32;
+begin
+  for arg:=0 to High(args) do
+    Self.FParams[arg] := args[arg];
+end;
 
-(*----| ThreadPool |----------------------------------------------------------*)
-constructor TThreadPool.Create(MaxThreads:SizeInt);
+function TExecThread.Run(iLow, iHigh: Int32): Boolean;
+begin
+  Result := Self.FMethod <> nil;
+  if Result then
+  begin
+    FRangeLo := iLow;
+    FRangeHi := iHigh;
+    Self.State := tsReady;
+  end;
+end;
+
+function TExecThread.Completed(): Boolean;
+begin
+  Result := (Self.State = tsSleeping);
+
+  // if the thread is completed, and it was a temporary thread then free it:
+  if Result and Self.Temporary then
+    Self.State := tsKill;
+end;
+
+
+
+// ----------------------------------------------------------------------------
+// ThreadPool
+
+constructor TThreadPool.Create(MaxThreads: SizeInt);
 var i:Int32;
 begin
   Self.FMaxThreads := MaxThreads;
   SetLength(self.FThreads, FMaxThreads);
   for i:=0 to High(self.FThreads) do
-  begin
-    self.FThreads[i].Available   := True;
-    self.FThreads[i].Initialized := False;
-  end;
+    self.FThreads[i] := TExecThread.Create();
 end;
 
 destructor TThreadPool.Free();
 var i:Int32;
 begin
   for i:=0 to High(self.FThreads) do
-    self.Release(i);
-end;
-
-function TThreadPool.GetAvailableThread(): TThreadId;
-var i:Int32;
-begin
-  for i:=0 to High(self.FThreads) do
-    if self.FThreads[i].Available then
-      Exit(TThreadId(i));
-  raise Exception.Create('TThreadPool.GetAvailableThread: No free execution threads'); 
-end;
-
-function TThreadPool.NewThread(method: TThreadMethod): TThreadId;
-begin
-  result := GetAvailableThread();
-  if self.FThreads[result].Thread <> nil then
-    Self.Release(result);
-
-  self.FThreads[result].Thread := TExecThread.Create();
-  self.FThreads[result].Available := False;
-  self.FThreads[result].Thread.SetMethod(method);
-end;
-
-procedure TThreadPool.SetArgument(t:TThreadId; argid:Int32; arg:Pointer);
-begin
-  self.FThreads[t].Thread.SetArgument(argid, arg);
-end;
-
-procedure TThreadPool.SetArguments(t:TThreadId; args:array of Pointer);
-var arg:Int32;
-begin
-  for arg:=0 to High(args) do
-    self.FThreads[t].Thread.SetArgument(arg, args[arg]);
-end;
-
-procedure TThreadPool.Start(t:TThreadId);
-begin
-  self.FThreads[t].Thread.Start;
-end;
-
-function TThreadPool.Executed(t:TThreadId): Boolean;
-begin
-  if (self.FThreads[t].Thread = nil) or (self.FThreads[t].Available) then
-     Result := False
-  else
-    Result := self.FThreads[t].Thread.Executed = True;
-end;
-
-procedure TThreadPool.Release(t:TThreadId);
-begin
-  self.FThreads[t].Available := True;
-  if self.FThreads[t].Thread <> nil then
   begin
-    self.FThreads[t].Thread.Terminate();
-    self.FThreads[t].Thread := nil;
+    if self.FThreads[i] <> nil then
+    begin
+      //self.FThreads[i].Terminate();
+      self.FThreads[i].State := tsKill; //this will cause it to free itself when it's ready
+      self.FThreads[i] := nil;
+    end;
   end;
 end;
 
-(*----| Functions |----------------------------------------------------------*)
-procedure TThreadPool.MatrixFunc(Method:TThreadMethod; Args: array of Pointer; W,H:Int32; nThreads:UInt8; fallback:Int32=256*256);
-var
-  i,lo,hi,step: Int32;
-  thread: array of record id: TThreadId; box: TBox; end;
-  params: TParamArray;
-  area: TBox;
+function TThreadPool.FindAvailableThread(): Int32;
+var i:Int32;
 begin
-  if (W*H < fallback) or (nThreads=1) then
+  for i:=0 to High(self.FThreads) do
+    if (self.FThreads[i].State = tsSleeping) then
+      Exit(i);
+
+  // no threads available - need to create a temporary thread
+  Result := NO_THREADS_AVAILABLE;
+end;
+
+function TThreadPool.PrepareThread(Method: TThreadMethod): TExecThread;
+var
+  tid: Int32;
+begin
+  tid := FindAvailableThread();
+  if tid <> NO_THREADS_AVAILABLE then
   begin
-    area := Box(0,0,W-1,H-1);
-    params := args;
-    params[length(args)] := @area;
-    Method(@params);
+    // when there are threads pre-allocated and ready for work we just reuse those
+    Result := self.FThreads[FindAvailableThread()];
+    Result.State := tsAwaiting;
+    Result.SetMethod(Method);
+  end else
+  begin
+    // if there are no threads we create a one time use thread that will free
+    // itself automatically once it has executed.
+    Result := TExecThread.Create();
+    Result.Temporary := True;
+    Result.State := tsAwaiting;
+    Result.SetMethod(Method);
+  end;
+end;
+
+procedure TThreadPool.DoParallel(Method: TThreadMethod; Args: array of Pointer; iLow, iHigh: Int32; nThreads: UInt8; Fallback: Boolean=False);
+var
+  i,step,A,B: Int32;
+  Thread: array of TExecThread;
+  Params: TParamArray;
+begin
+  if (fallback) or (nThreads=1) then
+  begin
+    Params := Args;
+    Method(@Params, iLow, iHigh);
     Exit();
   end;
 
   nThreads := Max(1, nThreads);
   SetLength(thread, nThreads);
-  
-  lo := 0;
-  step := (H-1) div nThreads; 
+
+  A := iLow;
+  step := Max(1, (iHigh+1) div nThreads);
+
   for i:=0 to nThreads-1 do
   begin
-    hi := Min(H-1, lo + step);
-    
-    thread[i].box := Box(0, lo, w-1, hi);
-    thread[i].id := Self.NewThread(Method);
-    Self.SetArguments(thread[i].id, Args);
-    Self.SetArgument(thread[i].id, length(args), @thread[i].box);
-    Self.Start(thread[i].id);
-	
-    if hi = H-1 then
+    B := Min(iHigh, A + step);
+
+    Thread[i] := Self.PrepareThread(Method);
+    Thread[i].SetArguments(Args);
+    Thread[i].Run(A,B);
+
+    if B = iHigh then
     begin
       nThreads := i+1;
       Break;
     end;
-    lo := hi + 1;
+    A := B + 1;
   end;
 
+  // PS: Thread[i].Completed also checks if the thread was a a temporary thread,
+  // and frees it if that was the case, when the thread is Completed that is.
   for i:=0 to nThreads-1 do
-  begin
-    while not Self.Executed(thread[i].id) do Sleep(0);
-    Self.Release(thread[i].id);
-  end;
+    while not Thread[i].Completed() do
+      Sleep(0);
 end;
 
 

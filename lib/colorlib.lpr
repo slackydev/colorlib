@@ -225,11 +225,10 @@ begin PColorRGB(Result)^ := HSLToRGB(PColorHSL(Params^[0])^); end;
 initialization
   ExportType('TBoolMatrix',        'array of array of LongBool;');
   ExportType('TIntMatrix',         'array of array of Int32;');
-  ExportType('TSingleMatrix',      'array of array of Single;');
   ExportType('EDistanceFormula',   '(dfRGB, dfHSV, dfHSL, dfXYZ, dfLAB, dfLCH, dfDeltaE);');
   ExportType('TChMultiplier',      'array [0..2] of Single;');
   ExportType('TColorlib',          'type Pointer');
-  
+
   ExportType('TFinder',  'packed record                ' + #13#10 +
                          '  FCompareFunc: Pointer;     ' + #13#10 +
                          '  FNumThreads: UInt8;        ' + #13#10 +
