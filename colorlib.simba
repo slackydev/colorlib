@@ -6,7 +6,7 @@ var
   cl: TColorlib;
   {$endif}
 
-{$IfNDef CodeInSight}
+{%codetools off}
 operator <  (Left:TSingleMatrix; Right:Double): TBoolMatrix; begin Result := colorlib.LessThan(Left, Right);    end;
 operator <  (Left:Double; Right:TSingleMatrix): TBoolMatrix; begin Result := colorlib.LessThan(Left, Right);    end;
 operator >  (Left:TSingleMatrix; Right:Double): TBoolMatrix; begin Result := colorlib.GreaterThan(Left, Right); end;
@@ -15,7 +15,7 @@ operator =  (Left:TSingleMatrix; Right:Double): TBoolMatrix; begin Result := col
 operator =  (Left:Double; Right:TSingleMatrix): TBoolMatrix; begin Result := colorlib.EqualTo(Left, Right);     end;
 operator <> (Left:TSingleMatrix; Right:Double): TBoolMatrix; begin Result := colorlib.NotEqualTo(Left, Right);  end;
 operator <> (Left:Double; Right:TSingleMatrix): TBoolMatrix; begin Result := colorlib.NotEqualTo(Left, Right);  end;
-{$EndIf}
+{%codetools on}
 
 function TColorlib.MatrixFromClient(x1,y1,x2,y2:Int32): TIntMatrix; constref;
 type
@@ -31,8 +31,8 @@ begin
   bmp := GetMufasaBitmap(BitmapFromClient(x1,y1, x2,y2));
   GetBitmapSize(bmp.GetIndex(), W,H);
 
-  Result := self.GetRawMatrix(bmp.GetData, 0,0,-1,-1, W,H);
-  FreeBitmap(bmp.GetIndex());
+  Result := bmp.ToMatrix();
+  bmp.Free();
 end;
 
 function TColorlib.MatrixFromClient_Benchmark(mulW,mulH:Double): TIntMatrix; constref;
@@ -47,9 +47,8 @@ begin
   h := Round(H*mulH);
   bmp.ResizeEx(RM_Nearest, w, h);
   for 0 to 1 do bmp.Blur(1);
-
-  Result := Self.GetRawMatrix(bmp.GetData, 0,0,w-1,h-1, w,h);
-  FreeBitmap(bmp.GetIndex());
+  Result := bmp.ToMatrix();
+  bmp.Free();
 end;
 
 
