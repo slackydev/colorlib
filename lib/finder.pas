@@ -284,10 +284,9 @@ end;
 procedure TFinder.SetMultipliers(Mul: TMultiplier);
 var x:Single;
 begin
-  x := (Mul[0] + Mul[1] + Mul[2]) / 3;
-  FChMul[0] := Mul[0] / x;
-  FChMul[1] := Mul[1] / x;
-  FChMul[2] := Mul[2] / x;
+  FChMul[0] := Mul[0];
+  FChMul[1] := Mul[1];
+  FChMul[2] := Mul[2];
 end;
 
 function TFinder.GetMultipliers(): TMultiplier;
