@@ -88,35 +88,35 @@ end;
 // -----------------------------------------------------------------------------------------
 // Matrix exports
 
-function _GetRawMatrix(constref _:Pointer; data:PInt32; x1,y1,x2,y2:Int32; W,H:Int32): TIntMatrix; cdecl;
+function _GetRawMatrix(var _:Pointer; data:PInt32; x1,y1,x2,y2:Int32; W,H:Int32): TIntMatrix; cdecl;
 begin Result := GetRawMatrix(data,x1,y1,x2,y2,W,H); end;
 
-function _Where(constref _:Pointer; Matrix:TBoolMatrix): TPointArray; cdecl;
-begin Result := Where(Matrix); end;
+procedure _Where(const Params: PParamArray; const Result:Pointer); cdecl;
+begin TPointArray(Result^) := Where(TBoolMatrix(Params^[1]^)); end;
 
-function _MatrixLT(constref _:Pointer; Left:TSingleMatrix; Right:Single): TBoolMatrix; cdecl;
-begin Result := MatrixLT(Left, Right); end;
+procedure _MatrixLT_MatVal(const Params: PParamArray; const Result:Pointer); cdecl;
+begin TBoolMatrix(Result^) := MatrixLT(TSingleMatrix(Params^[1]^), Single(Params^[2]^)); end;
 
-function _MatrixLT(constref _:Pointer; Left:Single; Right:TSingleMatrix): TBoolMatrix; cdecl;
-begin Result := MatrixLT(Left, Right); end;
+procedure _MatrixLT_ValMat(const Params: PParamArray; const Result:Pointer); cdecl;
+begin TBoolMatrix(Result^) := MatrixLT(Single(Params^[1]^), TSingleMatrix(Params^[2]^)); end;
 
-function _MatrixGT(constref _:Pointer; Left:TSingleMatrix; Right:Single): TBoolMatrix; cdecl;
-begin Result := MatrixGT(Left, Right); end;
+procedure _MatrixGT_MatVal(const Params: PParamArray; const Result:Pointer); cdecl;
+begin TBoolMatrix(Result^) := MatrixGT(TSingleMatrix(Params^[1]^), Single(Params^[2]^)); end;
 
-function _MatrixGT(constref _:Pointer; Left:Single; Right:TSingleMatrix): TBoolMatrix; cdecl;
-begin Result := MatrixGT(Left, Right); end;
+procedure _MatrixGT_ValMat(const Params: PParamArray; const Result:Pointer); cdecl;
+begin TBoolMatrix(Result^) := MatrixGT(Single(Params^[1]^), TSingleMatrix(Params^[2]^)); end;
 
-function _MatrixEQ(constref _:Pointer; Left:TSingleMatrix; Right:Single): TBoolMatrix; cdecl;
-begin Result := MatrixEQ(Left, Right); end;
+procedure _MatrixEQ_MatVal(const Params: PParamArray; const Result:Pointer); cdecl;
+begin TBoolMatrix(Result^) := MatrixEQ(TSingleMatrix(Params^[1]^), Single(Params^[2]^)); end;
 
-function _MatrixEQ(constref _:Pointer; Left:Single; Right:TSingleMatrix): TBoolMatrix; cdecl;
-begin Result := MatrixEQ(Left, Right); end;
+procedure _MatrixEQ_ValMat(const Params: PParamArray; const Result:Pointer); cdecl;
+begin TBoolMatrix(Result^) := MatrixEQ(Single(Params^[1]^), TSingleMatrix(Params^[2]^)); end;
 
-function _MatrixNE(constref _:Pointer; Left:TSingleMatrix; Right:Single): TBoolMatrix; cdecl;
-begin Result := MatrixNE(Left, Right); end;
+procedure _MatrixNE_MatVal(const Params: PParamArray; const Result:Pointer); cdecl;
+begin TBoolMatrix(Result^) := MatrixNE(TSingleMatrix(Params^[1]^), Single(Params^[2]^)); end;
 
-function _MatrixNE(constref _:Pointer; Left:Single; Right:TSingleMatrix): TBoolMatrix; cdecl;
-begin Result := MatrixNE(Left, Right); end;
+procedure _MatrixNE_ValMat(const Params: PParamArray; const Result:Pointer); cdecl;
+begin TBoolMatrix(Result^) := MatrixNE(Single(Params^[1]^), TSingleMatrix(Params^[2]^)); end;
 
 
 // -----------------------------------------------------------------------------------------
@@ -255,16 +255,16 @@ initialization
   ExportMethod(@TFinder_FindColor,      'function  TFinder.FindColor(Src: TIntMatrix; out Dest: TPointArray; color: TColor; Tolerance: Single): Boolean;');
 
   ExportMethod(@_GetRawMatrix, 'function TColorlib.GetRawMatrix(data:Pointer; x1,y1,x2,y2:Int32; W,H:Int32): TIntMatrix; constref;');
-  ExportMethod(@_Where,        'function TColorlib.Where(Matrix:TBoolMatrix): TPointArray; constref;');
+  ExportMethod(@_Where,        'function TColorlib.Where(Matrix:TBoolMatrix): TPointArray; constref; native;');
 
-  ExportMethod(@_MatrixLT,  'function TColorlib.LessThan(Left:TSingleMatrix; Right:Single): TBoolMatrix; constref; overload;');
-  ExportMethod(@_MatrixLT,  'function TColorlib.LessThan(Left:Single; Right:TSingleMatrix): TBoolMatrix; constref; overload;');
-  ExportMethod(@_MatrixGT,  'function TColorlib.GreaterThan(Left:TSingleMatrix; Right:Single): TBoolMatrix; constref; overload;');
-  ExportMethod(@_MatrixGT,  'function TColorlib.GreaterThan(Left:Single; Right:TSingleMatrix): TBoolMatrix; constref; overload;');
-  ExportMethod(@_MatrixEQ,  'function TColorlib.EqualTo(Left:TSingleMatrix; Right:Single): TBoolMatrix; constref; overload;');
-  ExportMethod(@_MatrixEQ,  'function TColorlib.EqualTo(Left:Single; Right:TSingleMatrix): TBoolMatrix; constref; overload;');
-  ExportMethod(@_MatrixNE,  'function TColorlib.NotEqualTo(Left:TSingleMatrix; Right:Single): TBoolMatrix; constref; overload;');
-  ExportMethod(@_MatrixNE,  'function TColorlib.NotEqualTo(Left:Single; Right:TSingleMatrix): TBoolMatrix; constref; overload;');
+  ExportMethod(@_MatrixLT_MatVal,  'function TColorlib.LessThan(Left:TSingleMatrix; Right:Single): TBoolMatrix; constref; overload; native;');
+  ExportMethod(@_MatrixLT_ValMat,  'function TColorlib.LessThan(Left:Single; Right:TSingleMatrix): TBoolMatrix; constref; overload; native;');
+  ExportMethod(@_MatrixGT_MatVal,  'function TColorlib.GreaterThan(Left:TSingleMatrix; Right:Single): TBoolMatrix; constref; overload; native;');
+  ExportMethod(@_MatrixGT_ValMat,  'function TColorlib.GreaterThan(Left:Single; Right:TSingleMatrix): TBoolMatrix; constref; overload; native;');
+  ExportMethod(@_MatrixEQ_MatVal,  'function TColorlib.EqualTo(Left:TSingleMatrix; Right:Single): TBoolMatrix; constref; overload; native;');
+  ExportMethod(@_MatrixEQ_ValMat,  'function TColorlib.EqualTo(Left:Single; Right:TSingleMatrix): TBoolMatrix; constref; overload; native;');
+  ExportMethod(@_MatrixNE_MatVal,  'function TColorlib.NotEqualTo(Left:TSingleMatrix; Right:Single): TBoolMatrix; constref; overload; native;');
+  ExportMethod(@_MatrixNE_ValMat,  'function TColorlib.NotEqualTo(Left:Single; Right:TSingleMatrix): TBoolMatrix; constref; overload; native;');
 
   // -----------------------------------------------------------------------------------
   // Color conversions

@@ -1,9 +1,14 @@
 {$i colorlib/colorlib.simba}
 (*
-  ACA kind of tool for colorlib. It may not give the very best color and modifiers,
-  but should at least give a good estimate if I got it right.
+  ACA kind of tool for colorlib. It may not give the absolute best color and modifiers,
+  but should at least give a good estimate, for most colorspaces.
 
-  LAB colorspace may pose some issues.
+  NOTE:
+    XYZ and LAB is problematic with this concept - they need special handling
+    as one or more channels is some sort of inverse, or weight of another channel.
+    So the coords do not directly represent a 3D shape.
+
+  - slacky
 *)
 type
   THueRange    = record Low,High: Extended; end;
@@ -24,7 +29,7 @@ type
     Best:    TBestColor;
   end;
 
-{$ifndef codeinsight}
+{%codetools off}
 operator := (var Left: TSuperColor; Right: ColorRGB): TSuperColor;
 begin
   Left.A := Right.R;
@@ -57,7 +62,7 @@ operator := (var Left: TSuperColor; Right: ColorHSL): TSuperColor;
 begin
   Result := Left := TSuperColor(Right);
 end;
-{$endif}
+{%codetools on}
 
 
 procedure TACACore.Init(CS: EDistanceFormula=dfRGB);
@@ -190,7 +195,8 @@ begin
     case Self.Formula of
       dfHSL: Result.Low := Result.High := Colors[i].ToHSL.H;
       dfHSV: Result.Low := Result.High := Colors[i].ToHSV.H;
-      dfLCH, dfDeltaE: Result.Low := Result.High := Colors[i].ToLCH.H;
+      dfLCH: Result.Low := Result.High := Colors[i].ToLCH.H;
+      dfDeltaE: Result.Low := Result.High := Colors[i].ToLCH.H;
     end;
     Exit();
   end;
@@ -234,7 +240,7 @@ begin
   Best := [];
   range := Self.ColorRange();
   hue   := Self.ColorRangeHue();
-  WriteLn(hue);
+  //WriteLn(hue);
   if(Self.Formula in [dfHSL, dfHSV]) then begin
     ABC.A := GetHue(hue.Low, hue.High);
     delA  := Max(Abs(DeltaAngle(ABC.A, hue.Low)), Abs(DeltaAngle(ABC.A, Hue.High)));
@@ -254,9 +260,13 @@ begin
     delC  := Abs(range.C1 - range.C2) / 2;
   end;
 
-  Best.Mods[0] := 1/Max(0.01, delA);
-  Best.Mods[1] := 1/Max(0.01, delB);
-  Best.Mods[2] := 1/Max(0.01, delC);
+  WriteLn([range.A1, range.A2]);
+  WriteLn([range.B1, range.B2]);
+  WriteLn([range.C1, range.C2]);
+
+  Best.Mods[0] := delA;
+  Best.Mods[1] := delB;
+  Best.Mods[2] := delC;
   Best.Mods := NormalizeMods(Best.Mods);
 
   case Formula of
@@ -294,7 +304,6 @@ begin
     Self.SetFormula(CS);
     Self.Best := [];
     Self.ComputeBestColor();
-    //WriteLn(CS, ' -> ', Best);
     if Best.Tolerance < tmpBest then
     begin
       Result := CS;
@@ -314,11 +323,11 @@ begin
   ComputeBestColor();
   Result := Best;
 
-  client.WriteLn('+----| '+ToStr(Self.Formula)+' |-----------------------------------------+');
-  client.WriteLn('| Color:     '+ ToStr(Best.Color)+ '  |  '+ ToStr(Best.Color.ToRGB));
-  client.WriteLn('| Tolerance: '+ ToStr(Best.Tolerance));
-  client.WriteLn('| Modifiers: '+ ToStr(Best.Mods));
-  client.WriteLn('+------------------------------------------------------+');
+  WriteLn('+----| '+ToStr(Self.Formula)+' |-----------------------------------------+');
+  WriteLn('| Color:     '+ ToStr(Best.Color)+ '  |  '+ ToStr(Best.Color.ToRGB));
+  WriteLn('| Tolerance: '+ ToStr(Best.Tolerance));
+  WriteLn('| Modifiers: '+ ToStr(Best.Mods));
+  WriteLn('+------------------------------------------------------+');
 end;
 
 
