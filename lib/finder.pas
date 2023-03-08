@@ -308,7 +308,7 @@ begin
   //Color1  := SwapRGBChannels(Color1);
   //Color2  := SwapRGBChannels(Color2);
   maxDist := Self.SetupColorInfo(Color1);
-  Result  := Self.FCompareFunc(FColorInfo, Color2, FChMul) / maxDist < Tolerance;
+  Result  := Self.FCompareFunc(FColorInfo, Color2, FChMul) / maxDist * 100 < Tolerance;
   Self.FreeColorInfo();
 end;
 
