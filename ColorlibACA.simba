@@ -260,13 +260,9 @@ begin
     delC  := Abs(range.C1 - range.C2) / 2;
   end;
 
-  WriteLn([range.A1, range.A2]);
-  WriteLn([range.B1, range.B2]);
-  WriteLn([range.C1, range.C2]);
-
-  Best.Mods[0] := delA;
-  Best.Mods[1] := delB;
-  Best.Mods[2] := delC;
+  Best.Mods[0] := 1/Max(0.01, delA);
+  Best.Mods[1] := 1/Max(0.01, delB);
+  Best.Mods[2] := 1/Max(0.01, delC); 
   Best.Mods := NormalizeMods(Best.Mods);
 
   case Formula of
